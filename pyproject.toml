@@ -1,0 +1,100 @@
+# https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+
+[project]
+name = "ansible-lint-foundata"
+version = "1.0.0a1"
+description = "foundata's additional rules and fixes for Ansible Lint"
+keywords = [
+  "ansible",
+  "ansible-lint",
+  "linting",
+]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSES/*.txt"]
+readme = { file = "README.md", content-type = "text/markdown" }
+authors = [
+  { name = "foundata GmbH" },
+  { name = "Andreas Haerter", email = "ah@foundata.com" },
+]
+maintainers = [
+  { name = "Andreas Haerter", email = "ah@foundata.com" },
+]
+requires-python = ">=3.12"
+# Add direct runtime dependencies with the code that needs them.
+dependencies = []
+
+# https://pypi.org/classifiers/
+# Add audience, topic and tested Python versions as those facts are established.
+classifiers = [
+  "Development Status :: 3 - Alpha",
+]
+
+[project.urls]
+Homepage = "https://foundata.com/en/projects/ansible-lint-foundata/"
+Documentation = "https://foundata.com/en/projects/ansible-lint-foundata/#doc"
+Repository = "https://foundata.com/en/projects/ansible-lint-foundata/#source"
+Issues = "https://foundata.com/en/projects/ansible-lint-foundata/#issues"
+Changelog = "https://foundata.com/en/projects/ansible-lint-foundata/#changelog"
+Guidelines = "https://foundata.com/en/guidelines/ansible-playbooks/"
+
+[tool.uv.build-backend]
+module-name = "ansible_lint_foundata"
+# Keep developer caches out of both distribution formats.
+source-exclude = ["**/.mypy_cache", "**/.ruff_cache", "**/.pytest_cache"]
+wheel-exclude = ["**/.mypy_cache", "**/.ruff_cache", "**/.pytest_cache"]
+# Downstream maintainers need the tests and licensing map when rebuilding.
+source-include = ["tests/**", "REUSE.toml"]
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.13",
+  "pytest>=9.0",
+  "pytest-cov>=5.0.0",
+  "reuse>=4.0.2",
+  "ruff>=0.12.7",
+  "rumdl>=0.2.72",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/settings/#lint_select
+select = [
+  "E4",  # pycodestyle import errors
+  "E7",  # pycodestyle statement errors
+  "E9",  # pycodestyle runtime errors
+  "F",   # Pyflakes
+  "I",   # import sorting
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "UP",  # pyupgrade
+  "RUF", # Ruff-specific rules
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+enable_error_code = ["explicit-override"] # Extends strict mode.
+warn_unreachable = true                   # Extends strict mode.
+
+[tool.pytest.ini_options]
+addopts = [
+  "--import-mode=importlib",
+]
+filterwarnings = ["error"]
+strict = true
+testpaths = ["tests"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+docstring-code-format = true
+docstring-code-line-length = 88
