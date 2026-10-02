@@ -6,9 +6,67 @@ This is an optional extension, not a fork or replacement command.
 
 ## Table of contents
 
+- [Installation](#installation)
+- [Formatting and Safety](#formatting-and-safety)
 - [Licensing, copyright](#licensing-copyright)
   - [Trademarks](#trademarks)
 - [Author information](#author-information)
+
+
+## Installation<a id="installation"></a>
+
+Install into the **same environment** as `ansible-lint`. For local development:
+
+```sh
+uv sync --locked --no-editable
+```
+
+Ansible Lint discovers installed modules under
+`ansiblelint.rules.custom.foundata`. No repository-local rule directory, custom
+command or `sys.path` modification is required. Editable installs are not the
+supported discovery path; see [development](DEVELOPMENT.md).
+
+All rules are opt-in. Enable individual IDs in `.ansible-lint`, including when
+using a stock profile:
+
+```yaml
+---
+profile: "production"
+enable_list:
+  - "foundata-condition-list"
+  - "foundata-handler-listen"
+  - "foundata-task-order"
+  - "foundata-file-mode"
+  - "foundata-debug-verbosity"
+  - "foundata-no-end-play"
+  - "foundata-task-name"
+```
+
+Then run the usual commands:
+
+```sh
+ansible-lint
+ansible-lint --fix
+```
+
+Without this package, the tested Ansible Lint version continues to run its stock
+checks even if these IDs remain in `enable_list`. Do not pass missing custom IDs
+explicitly to `--fix=...`. Without the configuration, installed foundata rules
+remain inactive. Required project CI must verify installation and discovery;
+optional local fallback must not silently weaken CI.
+
+
+## Formatting and Safety<a id="formatting-and-safety"></a>
+
+Ansible Lint owns YAML formatting. This package does not restore blank lines
+removed by `--fix`, require a blank line at EOF, or replace its serializer.
+Fixes wrap scalar conditions/topics and reorder task keys. They do not rename
+handler topics, change permissions, reinterpret process exit codes, or change
+play termination behavior. Review every fix.
+
+Generated `changelogs/changelog.yaml` should be excluded from Ansible Lint and
+validated separately with `antsibull-changelog lint-changelog-yaml`; validate
+fragments with `antsibull-changelog lint`.
 
 
 ## Licensing, copyright<a id="licensing-copyright"></a>
