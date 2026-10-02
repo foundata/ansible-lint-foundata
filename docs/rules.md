@@ -17,7 +17,7 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
 | foundata-handler-listen  | MUST        | Handlers must have nonempty lists of static lowercase topics; uppercase legacy aliases fail.                                            | Wrap a valid scalar topic; never rename. |
 | foundata-task-order      | SHOULD      | Documented task keys follow the guide's ordering; unspecified keys retain their slots.                                                  | Reorder ordinary mappings, not YAML merges. |
 | foundata-file-mode       | Policy      | Literal permission modes in supported built-in file modules must be absolute symbolic assignments with a matching inline octal comment. | None: mode/comment disagreement needs review. |
-| foundata-debug-verbosity | Policy      | Debug tasks explicitly supply `verbosity`; zero is accepted because the guide specifies no minimum.                                     | None.   |
+| foundata-debug-verbosity | MUST        | Debug tasks explicitly supply `verbosity`; zero is accepted for output intended for normal runs.                                        | None.   |
 | foundata-no-end-play     | Policy      | Reject `ansible.builtin.meta: end_play`.                                                                                                | None: `end_host` is not equivalent. |
 | foundata-task-name       | MUST NOT    | Reject templated play names and references to the current loop variable in a looping task's name.                                       | None.   |
 
@@ -32,14 +32,21 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
   for `name` first and block-related keys last.
 - Permissions: check `assemble`, `blockinfile`, `copy`, `file`, `get_url`,
   `lineinfile`, `replace`, `template`, `unarchive` and `uri` from
-  `ansible.builtin`. Check explicit module mappings and `args` mappings.
-  Dynamic modes require review and are not statically evaluated. Other
-  collections and `module_defaults` are not yet covered. `preserve` is not an
-  absolute mode and is reported. Comments start with four octal digits, such as
-  `# 0644`; subsequent explanation is allowed. All classes must be assigned
-  explicitly with `=`; reject relative operations,
-  conditional `X`, copied bits and umask-dependent forms. Support explicit
-  setuid, setgid and sticky bits in their appropriate classes.
+  `ansible.builtin`. Check explicit module mappings and `args` mappings. Dynamic
+  modes and their variable definitions require review and are not statically
+  evaluated. Put the octal comment at the literal variable definition, not at
+  each use. Other collections and `module_defaults` are not yet covered.
+  `preserve` is not an absolute mode and is reported. The guide permits a
+  task-local `# noqa: foundata-file-mode` for artifact-staging copies that must
+  retain source-file permissions, with an adjacent explanation. Review must
+  establish that the exception applies; the rule does not infer intent from a
+  task name, path or comment. Comments on absolute modes start with four octal
+  digits, such as `# 0644`; subsequent explanation is allowed. All classes must
+  be assigned explicitly with `=`; reject relative operations, conditional `X`,
+  copied bits and umask-dependent forms. Support explicit setuid, setgid and
+  sticky bits in their appropriate classes.
+- Debug output: the rule checks that `verbosity` is present. Review determines
+  whether output belongs in a normal run (`0`) or is diagnostic (`1` or higher).
 - Names: inherited outer-loop variables across included files are not resolved.
   Malformed Jinja belongs to stock syntax diagnostics, not this rule.
 
@@ -58,7 +65,9 @@ These remain guide obligations, not implemented coverage claims:
 
 - Context-aware quoting and broader Jinja style coverage.
 - Jinja plugin FQCNs, dictionary retrieval and injected-fact references.
-- Template `tpl_*` inputs, allowing documented globals and local template names.
+- Template `tpl_*` inputs for external data, including ambient Ansible
+  variables. Template-local variables, loop variables, macro parameters and
+  Jinja built-in facilities do not need the prefix.
 - Parsed top-level `and` diagnostics, explicit predicates and categorical facts.
 - Module-parameter order and additional mapping-form argument checks.
 - Internal-variable scope and cross-file nested-loop collisions.
@@ -73,11 +82,24 @@ dynamic references can always be resolved statically.
 
 ## Review and Runtime Checks
 
-Integration tests must establish idempotency and operation without pre-gathered
-facts. Review establishes justified module choices, useful comments, sensible
-template decomposition and meaningful runtime types. ShellCheck complements
-the unchanged Bash/POSIX and shell error-handling policies. Structured output
-uses native data and serialization filters, not manually interpolated JSON/YAML.
+Integration tests must establish convergence for configuration automation and
+operation without pre-gathered facts. Review intentionally repeatable operations
+for an explicit trigger or documented purpose, and verify that change reporting
+reflects actual behavior. `changed_when: false` cannot make a mutating operation
+idempotent.
+
+Review also covers module choices, useful comments, template decomposition and
+runtime types. Boolean conversion must use supported input representations;
+Python truthiness is a separate choice. Literal command arguments need
+`expand_argument_vars: false` and no shell quoting in `argv`. ShellCheck
+complements the unchanged Bash/POSIX and shell error-handling policies.
+Structured output uses native data and serialization filters.
+
+Projects must document which SHOULD-level recommendations they enforce as
+errors. Keep suppressions local and specific, with an explanation for an allowed
+exception or false positive. Required CI must verify the expected enabled rule
+IDs with `ansible-lint --list-rules --format brief` in the environment used for
+linting. A stock-only local run does not check custom rules.
 
 ## Release Acceptance
 

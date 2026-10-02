@@ -324,6 +324,34 @@ def test_noqa_and_skip_list_keep_standard_suppression_behavior(tmp_path: Path) -
     )
 
 
+@pytest.mark.parametrize("suppress_preserve", [False, True])
+def test_artifact_mode_exception_is_task_local(
+    tmp_path: Path, suppress_preserve: bool
+) -> None:
+    configure(tmp_path, "foundata-file-mode")
+    suppression = " # noqa: foundata-file-mode" if suppress_preserve else ""
+    (tmp_path / "tasks/main.yml").write_text(
+        f"""---
+# Keep the release artifact's executable bits for packaging.
+- name: "Stage release artifact"{suppression}
+  ansible.builtin.copy:
+    src: "release/"
+    dest: "/srv/build/staging/"
+    mode: "preserve"
+
+- name: "Set configuration permissions"
+  ansible.builtin.file:
+    path: "/etc/example.conf"
+    mode: "u+rw" # 0600
+""",
+        encoding="utf-8",
+    )
+    matches = diagnostics(run_lint(tmp_path, "--format", "json", "tasks/main.yml"))
+    assert all(item["check_name"] == "foundata-file-mode" for item in matches)
+    lines = {item["location"]["lines"]["begin"] for item in matches}
+    assert lines == ({12} if suppress_preserve else {7, 12})
+
+
 def test_nested_tasks_and_mode_source_location(tmp_path: Path) -> None:
     configure(
         tmp_path,

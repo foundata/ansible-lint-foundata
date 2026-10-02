@@ -32,6 +32,7 @@ using a stock profile:
 ```yaml
 ---
 profile: "production"
+strict: true
 enable_list:
   - "foundata-condition-list"
   - "foundata-handler-listen"
@@ -54,6 +55,11 @@ checks even if these IDs remain in `enable_list`. Do not pass missing custom IDs
 explicitly to `--fix=...`. Without the configuration, installed foundata rules
 remain inactive. Required project CI must verify installation and discovery;
 optional local fallback must not silently weaken CI.
+
+Document which SHOULD-level recommendations the project enforces as errors.
+Check every expected enabled rule ID with
+`ansible-lint --list-rules --format brief` in the same environment and with the
+same configuration used for linting, and fail CI if any are absent.
 
 
 ## Formatting and Safety<a id="formatting-and-safety"></a>
