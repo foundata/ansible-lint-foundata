@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, override
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
+from ansible_lint_foundata.fixes import reorder_task
 from ansible_lint_foundata.policy import ordered_task_keys
 from ansiblelint.rules import AnsibleLintRule, TransformMixin
 
@@ -53,7 +54,5 @@ class FoundataTaskOrderRule(AnsibleLintRule, TransformMixin):
         task = self.seek(match.yaml_path, data)
         if not isinstance(task, CommentedMap) or match.task is None or task.merge:
             return
-        # move_to_end retains key comments; rebuilding a mapping would lose them.
-        for key in ordered_task_keys(list(task), match.task.action):
-            task.move_to_end(key)
+        reorder_task(task, ordered_task_keys(list(task), match.task.action))
         match.fixed = True

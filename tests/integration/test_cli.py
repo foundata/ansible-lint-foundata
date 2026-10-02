@@ -419,6 +419,60 @@ def test_loop_index_is_not_allowed_in_a_task_name(tmp_path: Path) -> None:
     assert [item["check_name"] for item in matches] == ["foundata-task-name"]
 
 
+@pytest.mark.parametrize("condition", ["true", "\n    - true"])
+def test_task_order_preserves_the_next_tasks_heading(
+    tmp_path: Path, condition: str
+) -> None:
+    configure(tmp_path, "foundata-task-order", "foundata-condition-list")
+    target = tmp_path / "tasks/main.yml"
+    target.write_text(
+        '---\n- name: "First"\n'
+        "  register: result # Registration comment\n"
+        '  ansible.builtin.debug:\n    msg: "First"\n'
+        f"  when: {condition} # Condition comment\n\n"
+        "# Heading for second task\n"
+        '- name: "Second"\n'
+        '  ansible.builtin.debug:\n    msg: "Second"\n',
+        encoding="utf-8",
+    )
+    result = run_lint(tmp_path, "--fix", str(target))
+    assert result.returncode == RC.FIXED_VIOLATIONS, result.stdout + result.stderr
+    fixed = target.read_text(encoding="utf-8")
+    assert fixed.index("# Condition comment") < fixed.index("register: result")
+    assert fixed.index("register: result") < fixed.index("# Heading for second task")
+    assert '# Heading for second task\n- name: "Second"' in fixed
+    assert "# Registration comment" in fixed
+    result = run_lint(tmp_path, "--fix", str(target))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert target.read_text(encoding="utf-8") == fixed
+
+
+def test_task_order_does_not_move_an_aliased_lists_comments(tmp_path: Path) -> None:
+    configure(tmp_path, "foundata-task-order")
+    target = tmp_path / "tasks/main.yml"
+    target.write_text(
+        '---\n- name: "First"\n'
+        '  ansible.builtin.debug:\n    msg: "First"\n'
+        "  when: &conditions\n    - true # Anchor comment\n\n"
+        "# Heading for second task\n"
+        '- name: "Second"\n'
+        "  register: result\n"
+        '  ansible.builtin.debug:\n    msg: "Second"\n'
+        "  when: *conditions\n",
+        encoding="utf-8",
+    )
+    result = run_lint(tmp_path, "--fix", str(target))
+    assert result.returncode == RC.FIXED_VIOLATIONS, result.stdout + result.stderr
+    fixed = target.read_text(encoding="utf-8")
+    assert fixed.index("# Anchor comment") < fixed.index("# Heading for second task")
+    assert fixed.index("# Heading for second task") < fixed.index('name: "Second"')
+    data = YAML(typ="safe").load(fixed)
+    assert data[0]["when"] == data[1]["when"] == [True]
+    result = run_lint(tmp_path, "--fix", str(target))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert target.read_text(encoding="utf-8") == fixed
+
+
 def test_conditions_with_aliases_keep_scalar_uses_unchanged(tmp_path: Path) -> None:
     configure(tmp_path, "foundata-condition-list")
     target = tmp_path / "tasks" / "main.yml"
