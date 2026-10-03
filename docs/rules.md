@@ -79,9 +79,11 @@ adopt and document SHOULD-level rules enforced as CI errors.
   to builtins.
 - Template inputs: treat selected `.j2` files as Ansible templates. Support
   literal delimiter headers; report invalid or unsupported syntax as
-  `[unresolved]`. Call-site input completeness, imports/includes and
-  task-specific delimiter overrides are unchecked. Exclude unrelated application
-  templates. For intentionally different interfaces, use first-line
+  `[unresolved]`. Renderer-provided metadata has no exemption. Call-site input
+  completeness, imports/includes/inheritance and task-specific delimiter
+  overrides are unchecked. Inherited template-local values may be reported as
+  external inputs. Exclude unrelated application templates. For these false
+  positives or intentionally different interfaces, use first-line
   `noqa: foundata-template-inputs` comments with an explanation.
 - Command argv: check `quote` filter calls and literal higher-order uses. Do not
   infer intent from literal quote characters, inspect dynamic argv definitions
