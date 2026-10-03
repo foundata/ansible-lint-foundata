@@ -60,6 +60,12 @@ adopt and document SHOULD-level rules enforced as CI errors.
   infer intent from task names, paths or comments.
 - Debug output: check for `verbosity`. Review decides between normal output
   (`0`) and diagnostics (`1` or higher).
+- Play termination: the current rule rejects every `end_play`; it does not
+  check role/orchestration scope, `end_host` or `end_role` version requirements.
+  For a documented use permitted by the guideline, use task-local
+  `# noqa: foundata-no-end-play` with a scope explanation. Review reusable
+  roles' caller-termination contracts separately. Do not use `end_host` as a
+  workaround.
 - Names: exclude Jinja loop/macro/assignment locals. Check static
   `vars['name']`, `lookup`/`query`/`q` calls to `vars`, the current loop's index
   variable and `ansible_loop` metadata. Review dynamically constructed names and
