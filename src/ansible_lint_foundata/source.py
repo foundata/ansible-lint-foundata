@@ -11,6 +11,7 @@ from ansiblelint.utils import task_in_list
 from ansiblelint.yaml_utils import get_path_to_task
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.error import YAMLError
 from ruamel.yaml.tokens import CommentToken
 
 from ansible_lint_foundata.policy import builtin_module_name
@@ -50,6 +51,28 @@ def role_directory(file: Lintable) -> Path | None:
             ).is_file():
                 return root
     return None
+
+
+def role_topic_prefix(file: Lintable) -> str | None:
+    """Resolve conventional role[_collection]_ public prefixes when available."""
+    root = role_directory(file)
+    if root is None:
+        return None
+    prefix = root.name
+    if root.parent.name == "roles":
+        collection = root.parent.parent
+        galaxy = collection / "galaxy.yml"
+        if galaxy.is_file():
+            try:
+                data = YAML(typ="safe").load(galaxy.read_text(encoding="utf-8"))
+            except (OSError, YAMLError):
+                return None
+            if not isinstance(data, dict) or not isinstance(data.get("name"), str):
+                return None
+            prefix += "_" + data["name"]
+        elif collection.parent.parent.name == "ansible_collections":
+            prefix += "_" + collection.name
+    return prefix + "_"
 
 
 @lru_cache(maxsize=16)

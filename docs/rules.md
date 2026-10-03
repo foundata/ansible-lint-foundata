@@ -14,7 +14,7 @@ adopt and document SHOULD-level rules enforced as CI errors.
 | ------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
 | foundata-condition-list  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                        | Wrap strings/booleans only. |
 | foundata-condition-bool  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                       | None.   |
-| foundata-handler-listen  | MUST        | Require nonempty lists of static lowercase handler topics, including legacy aliases.                                        | Wrap a valid scalar topic; never rename. |
+| foundata-handler-listen  | MUST        | Require scoped topic lists; allow documented broadcasts and versioned migration aliases.                                    | Wrap a valid scalar topic; never rename. |
 | foundata-task-order      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                             | None: stock owns ordering autofix. |
 | foundata-file-mode       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.          | None: resolve mode/comment disagreements manually. |
 | foundata-debug-verbosity | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                             | None.   |
@@ -39,11 +39,12 @@ adopt and document SHOULD-level rules enforced as CI errors.
   including nested imports missed by stock discovery, with cycle protection
   and stock path resolution/exclusions. No dynamic-path inference, cross-file
   `notify` resolution (including multiple parents) or public-topic migration.
-  Topic prefixes, actions and objects are not yet checked. The guideline permits
-  documented migration aliases, but this check still rejects mixed-case values.
-  Use task-local `# noqa: foundata-handler-listen` for such aliases, with an
-  adjacent migration comment and documented removal version; review the other
-  handler requirements manually.
+  Recognized roles require `role[_collection]_<action>_<object>` topics.
+  Adjacent `Shared broadcast` comments permit intentional shared topics.
+  `Migration alias; remove in 3.0.0.` comments permit published legacy names,
+  including mixed case. Review the stated purpose and removal deadline.
+  Unknown role layouts retain lowercase checks; use an explained local
+  suppression for a different public prefix. Topics are never renamed.
 - Ordering: stock `key-order` owns `name` first and `block`, `rescue`, `always`
   last. Report only additional violations. Module-parameter ordering and
   undocumented groups for unknown keys are outside scope. The guide's optional

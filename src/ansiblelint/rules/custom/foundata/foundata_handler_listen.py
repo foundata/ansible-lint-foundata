@@ -9,9 +9,17 @@ from ansiblelint.utils import task_in_list
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from ansible_lint_foundata.fixes import wrap_scalar_list
-from ansible_lint_foundata.policy import builtin_module_name, is_handler_topic
+from ansible_lint_foundata.policy import (
+    builtin_module_name,
+    handler_topic_message,
+)
 from ansible_lint_foundata.rules import FoundataRule
-from ansible_lint_foundata.source import handler_file_context
+from ansible_lint_foundata.source import (
+    adjacent_comments,
+    handler_file_context,
+    role_topic_prefix,
+    source_task,
+)
 from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
@@ -24,7 +32,9 @@ class FoundataHandlerListenRule(FoundataRule, TransformMixin):
     """Give handlers explicit lowercase listen topics in list form."""
 
     id = "foundata-handler-listen"
-    description = "Legacy uppercase aliases are violations, not exceptions."
+    description = (
+        "Namespace role topics and document migration aliases with removal versions."
+    )
     tags = ["opt-in", "idiom"]
     severity = "MEDIUM"
     version_changed = "1.0.0"
@@ -102,8 +112,21 @@ class FoundataHandlerListenRule(FoundataRule, TransformMixin):
         if not isinstance(value, list):
             messages.append("Define listen as a nonempty list of lowercase topics.")
         topics = value if isinstance(value, list) else [value]
-        if not topics or any(not is_handler_topic(topic) for topic in topics):
+        prefix = role_topic_prefix(file) if file is not None else None
+        original = source_task(file, task) if file is not None else None
+        source_topics = original.get("listen") if original is not None else None
+        if not topics:
             messages.append("Listen topics must be nonempty, static lowercase strings.")
+        for index, topic in enumerate(topics):
+            line = task.line
+            if isinstance(source_topics, CommentedSeq) and index < len(source_topics):
+                line = source_topics.lc.item(index)[0] + 1
+            elif original is not None and "listen" in original:
+                line = original.lc.key("listen")[0] + 1
+            comment = adjacent_comments(file, line) if file is not None else ""
+            message = handler_topic_message(topic, prefix, comment)
+            if message is not None and message not in messages:
+                messages.append(message)
         return [
             self.create_matcherror(message=message, filename=file, data=task.raw_task)
             for message in messages
@@ -117,6 +140,15 @@ class FoundataHandlerListenRule(FoundataRule, TransformMixin):
         data: CommentedMap | CommentedSeq | str,
     ) -> None:
         task = self.seek(match.yaml_path, data)
-        if isinstance(task, CommentedMap) and is_handler_topic(task.get("listen")):
-            wrap_scalar_list(task, "listen")
-            match.fixed = True
+        if isinstance(task, CommentedMap) and isinstance(task.get("listen"), str):
+            line = task.lc.key("listen")[0] + 1
+            if (
+                handler_topic_message(
+                    task["listen"],
+                    role_topic_prefix(lintable),
+                    adjacent_comments(lintable, line),
+                )
+                is None
+            ):
+                wrap_scalar_list(task, "listen")
+                match.fixed = True

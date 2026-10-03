@@ -79,6 +79,34 @@ def is_handler_topic(value: object) -> bool:
     )
 
 
+def handler_topic_message(
+    value: object, prefix: str | None, comment: str
+) -> str | None:
+    """Check naming while preserving documented public-topic exceptions."""
+    if (
+        not isinstance(value, str)
+        or not value.strip()
+        or any(marker in value for marker in ("{{", "{%"))
+    ):
+        return "Listen topics must be nonempty, static lowercase strings."
+    migration = "migration alias" in comment.lower() and re.search(
+        r"\bremove(?:\s+it)?\s+in\s+\d+\.\d+(?:\.\d+)?(?:[-+][a-zA-Z0-9.-]+)?\b",
+        comment,
+        re.IGNORECASE,
+    )
+    if migration:
+        return None
+    if not is_handler_topic(value):
+        return "Listen topics must be nonempty, static lowercase strings."
+    if prefix is not None and "shared broadcast" not in comment.lower():
+        suffix = value.removeprefix(prefix)
+        if not value.startswith(prefix) or not re.fullmatch(
+            r"[a-z][a-z0-9]*_[a-z0-9][a-z0-9_]*", suffix
+        ):
+            return f"Use a role topic named {prefix}<action>_<object>, or document a shared broadcast or versioned migration alias."
+    return None
+
+
 def absolute_mode(value: str) -> int | None:
     """Return a fixed permission mode, rejecting state-dependent symbolic forms.
 
