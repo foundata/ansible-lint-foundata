@@ -176,10 +176,13 @@ class _ReferenceTracker(meta.TrackingCodeGenerator):
     def visit_Name(self, node: nodes.Name, frame: Frame) -> None:
         reference = frame.symbols.ref(node.name)
         binding = frame.symbols.find_load(reference)
+        owner = frame.symbols
+        while node.name not in owner.refs and owner.parent is not None:
+            owner = owner.parent
         if (
             node.ctx == "load"
             and binding == ("resolve", node.name)
-            and node.name not in frame.symbols.stores
+            and node.name not in owner.stores
             and node.name not in self.environment.globals
         ):
             self.external_reads.add(id(node))
