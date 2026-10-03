@@ -532,6 +532,34 @@ def test_conditions_with_aliases_keep_scalar_uses_unchanged(tmp_path: Path) -> N
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.parametrize("boolean", ["true", "false"])
+def test_anchored_boolean_conditions_keep_their_type_and_scalar_aliases(
+    tmp_path: Path, boolean: str
+) -> None:
+    configure(tmp_path, "foundata-condition-list")
+    target = tmp_path / "tasks/main.yml"
+    target.write_text(
+        '---\n- name: "Example"\n'
+        '  ansible.builtin.debug:\n    msg: "Example"\n'
+        f"  vars:\n    enabled: &enabled {boolean}\n"
+        "    alias: *enabled\n  when: *enabled\n  changed_when: *enabled\n",
+        encoding="utf-8",
+    )
+    result = run_lint(tmp_path, "--fix=foundata-condition-list", str(target))
+    assert result.returncode == RC.FIXED_VIOLATIONS, result.stdout + result.stderr
+    first = target.read_bytes()
+    task = YAML(typ="safe").load(first)[0]
+    expected = boolean == "true"
+    assert task["vars"]["enabled"] is expected
+    assert task["vars"]["alias"] is expected
+    assert task["when"][0] is expected
+    assert task["changed_when"][0] is expected
+    assert (
+        run_lint(tmp_path, "--fix=foundata-condition-list", str(target)).returncode == 0
+    )
+    assert target.read_bytes() == first
+
+
 def test_task_order_does_not_rewrite_merge_keys(tmp_path: Path) -> None:
     configure(tmp_path, "foundata-task-order")
     target = tmp_path / "tasks" / "main.yml"

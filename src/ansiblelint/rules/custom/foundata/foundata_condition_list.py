@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, override
 
 from ansiblelint.errors import RuleMatchTransformMeta
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.scalarbool import ScalarBoolean
 
 from ansible_lint_foundata.fixes import wrap_scalar_list
 from ansible_lint_foundata.policy import CONDITION_KEYS
@@ -65,6 +66,6 @@ class FoundataConditionListRule(AnsibleLintRule, TransformMixin):
         key = match.transform_meta.key
         value = task.get(key)
         # Nulls/mappings/numbers are invalid conditions, not safe fix targets.
-        if isinstance(value, str | bool):
+        if isinstance(value, str | bool | ScalarBoolean):
             wrap_scalar_list(task, key)
             match.fixed = True

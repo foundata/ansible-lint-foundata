@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, override
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from ansible_lint_foundata.fixes import wrap_scalar_list
-from ansible_lint_foundata.policy import is_handler_topic
+from ansible_lint_foundata.policy import builtin_module_name, is_handler_topic
 from ansiblelint.rules import AnsibleLintRule, TransformMixin
 
 if TYPE_CHECKING:
@@ -28,7 +28,11 @@ class FoundataHandlerListenRule(AnsibleLintRule, TransformMixin):
 
     @override
     def matchtask(self, task: Task, file: Lintable | None = None) -> list[MatchError]:
-        if task.kind != "handlers":
+        if (
+            task.kind != "handlers"
+            or builtin_module_name(task["action"]["__ansible_module__"])
+            == "import_tasks"
+        ):
             return []
         value = task.raw_task.get("listen")
         messages = []

@@ -25,8 +25,11 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
 
 - Conditions: no splitting of `and`, no runtime type inference, and no rewriting
   of role-list conditions in this alpha. Invalid scalar types remain unfixed.
+  Anchored booleans retain their boolean type and other scalar alias uses.
 - Handlers: no cross-file `notify` resolution or public-topic migration. Both
   task files identified as handlers and inline play handlers are checked.
+  Static `import_tasks` directives are exempt; their imported handlers are not.
+  Dynamic `include_tasks` handlers need topics on the include itself.
 - Ordering: module-parameter ordering is not implemented. Unknown task keys are
   not guessed into undocumented groups. Stock `key-order` remains responsible
   for `name` first and block-related keys last.
