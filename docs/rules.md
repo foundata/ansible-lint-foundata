@@ -144,9 +144,15 @@ resolve every dynamic reference.
 ## Review and runtime checks
 
 Integration tests must verify configuration convergence and operation without
-pre-gathered facts. Intentionally repeatable operations need an explicit trigger
-or documented purpose and accurate change reporting. `changed_when: false`
-cannot make a mutating operation idempotent.
+pre-gathered facts, with fact injection disabled. Cover missing facts and stale
+values requiring a refresh; presence checks do not establish freshness. Review
+required fact keys separately from collection selectors. Injected-alias checks
+are not implemented; a blanket `ansible_*` ban would also reject valid magic
+and connection variables.
+
+Intentionally repeatable operations need an explicit trigger or documented
+purpose and accurate change reporting. `changed_when: false` cannot make a
+mutating operation idempotent.
 
 Review module choices, comment usefulness, template decomposition and runtime
 types. Boolean conversion requires supported inputs; Python truthiness is a
