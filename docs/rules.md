@@ -43,7 +43,9 @@ adopt and document SHOULD-level rules enforced as CI errors.
   handler requirements manually.
 - Ordering: stock `key-order` owns `name` first and `block`, `rescue`, `always`
   last. Report only additional violations. Module-parameter ordering and
-  undocumented groups for unknown keys are outside scope.
+  undocumented groups for unknown keys are outside scope. The guide's optional
+  parameter alphabetization is advisory; it excludes application data in
+  `vars`, `set_fact` assignments and nested payloads.
 - Permissions: cover `assemble`, `blockinfile`, `copy`, `file`, `get_url`,
   `lineinfile`, `replace`, `template`, `unarchive` and `uri` through
   `ansible.builtin`, `ansible.legacy` and normalized short names, in module,
@@ -99,6 +101,11 @@ double-quote preference with the agreed quoted-quote exception, basic names,
 module FQCNs, explicit role loop-variable patterns and common command risks.
 Do not duplicate stock checks. The formatter controls layout; one blank line
 between tasks is a guide preference, not an exact-placement rule.
+
+Context-aware quote checks are not implemented. Distinguish ordinary string
+values from structural keys, identifiers and implicit Jinja expressions; allow
+YAML-required outer quotes. Preserve parsed values and avoid blanket quote
+insertion.
 
 ### Compatible task ordering
 
