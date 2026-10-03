@@ -49,7 +49,5 @@ def test_all_condition_contexts_and_no_inference(tmp_path: Path) -> None:
     assert len(matches) == 4
     assert {m["check_name"] for m in matches} == {"foundata-condition-bool"}
     before = target.read_bytes()
-    assert (
-        run_lint(tmp_path, "--fix=all", str(target)).returncode == 2
-    )
+    assert run_lint(tmp_path, "--fix=all", str(target)).returncode == 2
     assert YAML(typ="safe").load(target.read_bytes()) == YAML(typ="safe").load(before)
