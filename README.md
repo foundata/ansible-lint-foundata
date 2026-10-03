@@ -90,8 +90,8 @@ stock `key-order` owns its autofix. The extension does not rename
 handler topics, change permissions, reinterpret process exit codes, or change
 play termination behavior. Review every fix.
 
-See the [rule contract](docs/rules.md) for exact coverage, remaining review
-requirements and proposed guideline revisions.
+See the [rule contract](docs/rules.md) for exact coverage and remaining review
+requirements.
 
 Generated `changelogs/changelog.yaml` should be excluded from Ansible Lint and
 validated separately with `antsibull-changelog lint-changelog-yaml`; validate
