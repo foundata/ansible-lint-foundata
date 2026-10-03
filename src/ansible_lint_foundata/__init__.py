@@ -1,6 +1,8 @@
 """foundata policy helpers for the optional Ansible Lint extension."""
 
 RULE_IDS = (
+    "foundata-string-quotes",
+    "foundata-parameter-order",
     "foundata-condition-list",
     "foundata-condition-bool",
     "foundata-fact-vars",

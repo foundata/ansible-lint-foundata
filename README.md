@@ -81,8 +81,9 @@ prefix and purpose suffix; it cannot infer a collection's public interface.
 
 The YAML configuration accepts formatter output, enforces document starts and
 lowercase booleans, and prefers double quotes without forcing quotes on local
-identifiers or implicit expressions. Context-aware quote requirements remain
-review concerns. Adopting the example also adopts its SHOULD-level checks as
+identifiers or implicit expressions. Optional `foundata-string-quotes` and
+`foundata-parameter-order` checks require separate adoption; they are not enabled
+in the example. Adopting the example also adopts its SHOULD-level checks as
 errors. Keep changelog validation in a separate CI step.
 
 

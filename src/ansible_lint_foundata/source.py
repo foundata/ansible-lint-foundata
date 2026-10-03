@@ -24,7 +24,9 @@ if TYPE_CHECKING:
 @lru_cache(maxsize=16)
 def _load_source(content: str) -> object:
     # The content, not a filename, is the key so a fix cannot leave stale metadata.
-    return YAML(typ="rt").load(content)
+    parser = YAML(typ="rt")
+    parser.preserve_quotes = True
+    return parser.load(content)
 
 
 def source_task(file: Lintable, task: Task) -> CommentedMap | None:

@@ -27,6 +27,8 @@ adopt and document SHOULD-level rules enforced as CI errors.
 | foundata-notify          | MUST        | Resolve static local notifications; reject name coupling and missing targets in closed plays.                               | None: never rename topics. |
 | foundata-loop-collision  | MUST        | Detect loop/index bindings that shadow outer include/role loop bindings.                                                    | None: renaming changes references. |
 | foundata-set-fact        | SHOULD      | Reject overwrites of statically declared task/play variables, role defaults/vars and role argument options.                 | None: choose a separate state variable. |
+| foundata-string-quotes   | SHOULD      | Check ordinary task string values, excluding implicit expressions and binding identifiers.                                  | None.   |
+| foundata-parameter-order | SHOULD      | Group parameters of supported built-in modules, without sorting application data.                                           | None.   |
 
 ### Boundaries
 
@@ -56,10 +58,13 @@ adopt and document SHOULD-level rules enforced as CI errors.
   may notify external topics. Known handler-name coupling is still reported.
   Resolve conventional local roles; custom search paths remain unresolved.
 - Ordering: stock `key-order` owns `name` first and `block`, `rescue`, `always`
-  last. Report only additional violations. Module-parameter ordering and
-  undocumented groups for unknown keys are outside scope. The guide's optional
-  parameter alphabetization is advisory; it excludes application data in
-  `vars`, `set_fact` assignments and nested payloads.
+  last. Report only additional violations. The separate parameter rule covers
+  `file`, `template`, `copy`, `debug`, `command`, `shell`, `service`, `systemd`,
+  `systemd_service`, `package`, `apt`, `dnf`, `uri` and `get_url`. Keep primary
+  parameters' relative order, then `owner`, `group`, `mode`, then alphabetized
+  optional parameters. Inspect direct module/argument mappings only; skip YAML
+  merges, unknown interfaces and nested application data. This advisory rule
+  and string quoting require separate adoption beyond the consumer example.
 - Permissions: cover `assemble`, `blockinfile`, `copy`, `file`, `get_url`,
   `lineinfile`, `replace`, `template`, `unarchive` and `uri` through
   `ansible.builtin`, `ansible.legacy` and normalized short names, in module,
@@ -130,10 +135,11 @@ module FQCNs, explicit role loop-variable patterns and common command risks.
 Do not duplicate stock checks. The formatter controls layout; one blank line
 between tasks is a guide preference, not an exact-placement rule.
 
-Context-aware quote checks are not implemented. Distinguish ordinary string
-values from structural keys, identifiers and implicit Jinja expressions; allow
-YAML-required outer quotes. Preserve parsed values and avoid blanket quote
-insertion.
+The optional string-quote rule checks task values, not structural keys. Exempt
+conditions, `assert.that`, `debug.var`, register names and loop/index bindings.
+Accept quoted expressions and block scalars. Standalone vars files and play
+keywords remain review concerns. Stock owns quote style; neither custom style
+rule rewrites values or order. Explain readability exceptions with local skips.
 
 ### Compatible task ordering
 
@@ -160,10 +166,10 @@ composition mechanism.
 
 Not yet implemented; guideline obligations still apply:
 
-- Context-aware quoting and broader Jinja style coverage.
+- Quoting outside tasks and broader Jinja style coverage.
 - Jinja plugin coverage outside tasks and dictionary retrieval.
 - Parsed top-level `and` diagnostics, explicit predicates and categorical facts.
-- Module-parameter order and additional mapping-form argument checks.
+- Additional module interfaces and mapping-form argument checks.
 - Internal-variable scope beyond statically resolved loop collisions.
 - Selective `with_*` migration preserving lookup and flattening semantics.
 - Command interpolation and literal-dollar expansion.

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from ansiblelint.constants import RC
+from ruamel.yaml import YAML
 
 from ansible_lint_foundata import RULE_IDS
 from tests.integration.test_cli import diagnostics, run_lint
@@ -97,7 +98,10 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
         for item in diagnostics(result)
         if item["check_name"].startswith("foundata-")
     }
-    assert custom == set(RULE_IDS)
+    config = YAML(typ="safe").load(tmp_path / ".ansible-lint")
+    adopted = {name for name in config["enable_list"] if name.startswith("foundata-")}
+    assert adopted <= set(RULE_IDS)
+    assert custom == adopted
     assert result.returncode == 2
 
 
