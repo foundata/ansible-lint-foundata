@@ -4,10 +4,48 @@ from __future__ import annotations
 
 import ast
 from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from jinja2 import Environment, TemplateSyntaxError, nodes
 
-from ansible_lint_foundata.policy import template_names
+from ansible_lint_foundata.policy import (
+    CONDITION_KEYS,
+    builtin_module_name,
+    template_names,
+)
+
+if TYPE_CHECKING:
+    from ansiblelint.utils import Task
+
+
+def strings(value: object, seen: set[int] | None = None) -> Iterator[str]:
+    """Walk YAML strings without following recursive aliases indefinitely."""
+    seen = set() if seen is None else seen
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict) and id(value) not in seen:
+        seen.add(id(value))
+        for key, child in value.items():
+            yield from strings(key, seen)
+            yield from strings(child, seen)
+    elif isinstance(value, list) and id(value) not in seen:
+        seen.add(id(value))
+        for child in value:
+            yield from strings(child, seen)
+
+
+def task_expression_inputs(task: Task) -> Iterator[tuple[str, bool]]:
+    """Separate ordinary task templates from implicit expression parameters."""
+    for key, value in task.raw_task.items():
+        if key.startswith("__") or key in {"block", "rescue", "always"}:
+            continue
+        for text in strings(value):
+            yield text, key in CONDITION_KEYS
+    module = builtin_module_name(task["action"]["__ansible_module__"])
+    parameter = {"assert": "that", "debug": "var"}.get(module or "")
+    if parameter:
+        for text in strings(task["action"].get(parameter)):
+            yield text, True
 
 
 def expression_node(value: str) -> nodes.Expr | None:

@@ -38,7 +38,7 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
 
 - name: "Debug {{ item }}"
   ansible.builtin.debug:
-    msg: "{{ example | default('Example') }}"
+    msg: "{{ ansible_distribution | default('Example') }}"
   loop: []
 
 - name: "Stop"

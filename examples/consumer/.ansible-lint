@@ -8,6 +8,7 @@ enable_list:
   - "loop-var-prefix"
   - "foundata-condition-list"
   - "foundata-condition-bool"
+  - "foundata-fact-vars"
   - "foundata-handler-listen"
   - "foundata-task-order"
   - "foundata-file-mode"

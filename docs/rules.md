@@ -23,6 +23,7 @@ adopt and document SHOULD-level rules enforced as CI errors.
 | foundata-jinja-fqcn      | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments.  | None: review provider resolution. |
 | foundata-template-inputs | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                    | None: inputs define the interface. |
 | foundata-command-argv    | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                     | None: preserve arguments for review. |
+| foundata-fact-vars       | MUST        | Check known injected fact references in task expressions, play vars and vars files.                                         | None: review host and variable scope. |
 
 ### Boundaries
 
@@ -30,7 +31,7 @@ adopt and document SHOULD-level rules enforced as CI errors.
   checks reject literal nonbooleans and expressions whose branches are all
   known nonboolean. They do not evaluate plugins or infer runtime types.
   Neither rule splits `and`, rewrites
-  role-list conditions or fix invalid scalar types. Fixes preserve anchored
+  role-list conditions or fixes invalid scalar types. Fixes preserve anchored
   booleans and other scalar alias uses. Review mixed AND/OR grouping and
   command-specific exit codes separately.
 - Handlers: check handler files and inline play handlers. Exempt static
@@ -96,6 +97,10 @@ adopt and document SHOULD-level rules enforced as CI errors.
 - Command argv: check `quote` filter calls and literal higher-order uses. Do not
   infer intent from literal quote characters, inspect dynamic argv definitions
   or rewrite shell command strings.
+- Facts: check an explicit catalog of built-in aliases, including direct names,
+  literal `vars` lookups and `hostvars` access. Honor Jinja locals. Unknown
+  aliases, dynamic variable names and fact freshness remain review concerns;
+  magic and connection variables are not rejected by their prefix.
 
 ## Stock coverage
 
@@ -137,7 +142,7 @@ composition mechanism.
 Not yet implemented; guideline obligations still apply:
 
 - Context-aware quoting and broader Jinja style coverage.
-- Jinja plugin coverage outside tasks, dictionary retrieval and injected facts.
+- Jinja plugin coverage outside tasks and dictionary retrieval.
 - Template call-site input completeness, imports/includes and task-specific
   delimiter overrides.
 - Parsed top-level `and` diagnostics, explicit predicates and categorical facts.
@@ -157,9 +162,8 @@ resolve every dynamic reference.
 Integration tests must verify configuration convergence and operation without
 pre-gathered facts, with fact injection disabled. Cover missing facts and stale
 values requiring a refresh; presence checks do not establish freshness. Review
-required fact keys separately from collection selectors. Injected-alias checks
-are not implemented; a blanket `ansible_*` ban would also reject valid magic
-and connection variables.
+required fact keys separately from collection selectors. Static alias checks
+cannot establish whether required facts were collected or remain current.
 
 Intentionally repeatable operations need an explicit trigger or documented
 purpose and accurate change reporting. `changed_when: false` cannot make a

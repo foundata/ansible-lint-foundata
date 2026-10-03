@@ -2,32 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from typing import TYPE_CHECKING, override
 
-from ansible_lint_foundata.expressions import plugin_references
-from ansible_lint_foundata.policy import builtin_module_name
+from ansible_lint_foundata.expressions import plugin_references, task_expression_inputs
 from ansible_lint_foundata.rules import FoundataRule
 
 if TYPE_CHECKING:
     from ansiblelint.errors import MatchError
     from ansiblelint.file_utils import Lintable
     from ansiblelint.utils import Task
-
-
-def _strings(value: object, seen: set[int] | None = None) -> Iterator[str]:
-    seen = set() if seen is None else seen
-    if isinstance(value, str):
-        yield value
-    elif isinstance(value, dict) and id(value) not in seen:
-        seen.add(id(value))
-        for key, child in value.items():
-            yield from _strings(key, seen)
-            yield from _strings(child, seen)
-    elif isinstance(value, list) and id(value) not in seen:
-        seen.add(id(value))
-        for child in value:
-            yield from _strings(child, seen)
 
 
 class FoundataJinjaFqcnRule(FoundataRule):
@@ -42,17 +25,9 @@ class FoundataJinjaFqcnRule(FoundataRule):
 
     @override
     def matchtask(self, task: Task, file: Lintable | None = None) -> list[MatchError]:
-        inputs: list[tuple[str, bool]] = []
-        for key, value in task.raw_task.items():
-            if key.startswith("__") or key in {"block", "rescue", "always"}:
-                continue
-            implicit = key in {"when", "changed_when", "failed_when", "until"}
-            inputs.extend((text, implicit) for text in _strings(value))
-        if builtin_module_name(task["action"]["__ansible_module__"]) == "assert":
-            inputs.extend((text, True) for text in _strings(task["action"].get("that")))
         matches = []
         seen: set[tuple[str, int]] = set()
-        for text, implicit in inputs:
+        for text, implicit in task_expression_inputs(task):
             for name, _ in plugin_references(text, implicit=implicit):
                 location = (name, task.line)
                 if name.count(".") >= 2 or location in seen:
