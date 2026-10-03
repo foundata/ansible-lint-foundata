@@ -194,6 +194,9 @@ class TaskGraph:
         loops: frozenset[str],
         active: frozenset[Path],
     ) -> None:
+        if root in active:
+            self.closed = False
+            return
         key = (
             root,
             loops,
@@ -206,6 +209,7 @@ class TaskGraph:
             self.closed = False
             return
         self._roles.add(key)
+        active = active | {root}
         for kind in ("handlers", "tasks"):
             stem = literal(settings.get(f"{kind}_from", "main"))
             if stem is None:

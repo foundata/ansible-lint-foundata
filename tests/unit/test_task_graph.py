@@ -63,3 +63,19 @@ def test_excluded_or_outside_files_remain_unresolved(
     graph.add_file(Lintable(excluded, kind="tasks"))
     assert not graph.closed
     assert graph.entries == []
+
+
+def test_role_dependency_cycle_leaves_namespace_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    parent = tmp_path / "playbook.yml"
+    parent.write_text("[]\n", encoding="utf-8")
+    for name, dependency in (("first", "second"), ("second", "first")):
+        role = tmp_path / "roles" / name
+        (role / "meta").mkdir(parents=True)
+        (role / "meta/main.yml").write_text(
+            f"dependencies: [{dependency}]\n", encoding="utf-8"
+        )
+    graph = TaskGraph(tmp_path, resolver(tmp_path, monkeypatch))
+    graph.add_role(Lintable(parent), "first", frozenset(), frozenset())
+    assert not graph.closed
