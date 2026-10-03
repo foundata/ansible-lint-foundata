@@ -26,6 +26,7 @@ adopt and document SHOULD-level rules enforced as CI errors.
 | foundata-fact-vars       | MUST        | Check known injected fact references in task expressions, play vars and vars files.                                         | None: review host and variable scope. |
 | foundata-notify          | MUST        | Resolve static local notifications; reject name coupling and missing targets in closed plays.                               | None: never rename topics. |
 | foundata-loop-collision  | MUST        | Detect loop/index bindings that shadow outer include/role loop bindings.                                                    | None: renaming changes references. |
+| foundata-set-fact        | SHOULD      | Reject overwrites of statically declared task/play variables, role defaults/vars and role argument options.                 | None: choose a separate state variable. |
 
 ### Boundaries
 
@@ -66,7 +67,11 @@ adopt and document SHOULD-level rules enforced as CI errors.
   mapping's comment and source line, including nested merges and overrides.
   Put octal comments at literal definitions, not uses. Other collections
   (including basename matches) and `module_defaults` are unsupported. Review
-  dynamic modes and variable definitions; the rule does not evaluate them.
+  dynamic modes; the rule does not evaluate expressions. For unmodified variable
+  or literal mapping references, inspect task/play/block declarations, literal
+  `vars_files` and role `defaults/main`/`vars/main` definitions. Check comments
+  at definitions and report their locations in the use-site diagnostic. No
+  precedence simulation or dynamic include/lookup resolution.
   Mode comments must start with four octal digits, such as `# 0644`, optionally
   followed by an explanation. Assign every class with `=`; relative operations,
   conditional `X`, copied bits and umask-dependent forms fail. Explicit setuid,
@@ -111,6 +116,10 @@ adopt and document SHOULD-level rules enforced as CI errors.
   literal `vars` lookups and `hostvars` access. Honor Jinja locals. Unknown
   aliases, dynamic variable names and fact freshness remain review concerns;
   magic and connection variables are not rejected by their prefix.
+- Input overwrites: check `set_fact` against the same literal declarations and
+  role argument specifications. Runtime-only caller inputs and arbitrary
+  `include_vars` files remain unresolved. Application dictionary contents and
+  newly computed variables are not treated as declared inputs.
 
 ## Stock coverage
 
@@ -157,8 +166,7 @@ Not yet implemented; guideline obligations still apply:
 - Module-parameter order and additional mapping-form argument checks.
 - Internal-variable scope beyond statically resolved loop collisions.
 - Selective `with_*` migration preserving lookup and flattening semantics.
-- Command interpolation, literal-dollar expansion, and overwriting inputs with
-  `set_fact`.
+- Command interpolation and literal-dollar expansion.
 - Contextual file naming, loader extensions and comment structure.
 
 Define scope and regression fixtures before implementation. Parse YAML/Jinja

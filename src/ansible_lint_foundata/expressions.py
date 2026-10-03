@@ -61,6 +61,35 @@ def expression_node(value: str) -> nodes.Expr | None:
     return None
 
 
+def variable_reference(value: object) -> tuple[str, ...] | None:
+    """Recognize a single unmodified variable or literal mapping access."""
+    if not isinstance(value, str):
+        return None
+    try:
+        template = Environment(optimized=False).parse(value)
+    except TemplateSyntaxError:
+        return None
+    if (
+        len(template.body) != 1
+        or not isinstance(template.body[0], nodes.Output)
+        or len(template.body[0].nodes) != 1
+    ):
+        return None
+    node = template.body[0].nodes[0]
+    keys: list[str] = []
+    while isinstance(node, nodes.Getattr | nodes.Getitem):
+        if isinstance(node, nodes.Getattr):
+            keys.append(node.attr)
+        elif isinstance(node.arg, nodes.Const) and isinstance(node.arg.value, str):
+            keys.append(node.arg.value)
+        else:
+            return None
+        node = node.node
+    if isinstance(node, nodes.Name):
+        return (node.name, *reversed(keys))
+    return None
+
+
 def nonboolean_condition(value: object) -> bool:
     """Reject only known nonboolean results; never infer variable/plugin types."""
     if isinstance(value, bool):

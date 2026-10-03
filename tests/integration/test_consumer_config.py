@@ -41,6 +41,12 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
     msg: "{{ ansible_distribution | default('Example') }}"
   loop: []
 
+- name: "Overwrite input"
+  ansible.builtin.set_fact:
+    example_input: true
+  vars:
+    example_input: false
+
 - name: "Stop"
   ansible.builtin.meta: "end_play"
 

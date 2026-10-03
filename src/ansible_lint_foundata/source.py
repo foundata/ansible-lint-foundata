@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ansiblelint.file_utils import find_role_dir
+from ansiblelint.file_utils import Lintable, find_role_dir
 from ansiblelint.utils import task_in_list
 from ansiblelint.yaml_utils import get_path_to_task
 from ruamel.yaml import YAML
@@ -18,7 +18,6 @@ from ansible_lint_foundata.policy import builtin_module_name
 from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
-    from ansiblelint.file_utils import Lintable
     from ansiblelint.utils import Task
 
 
@@ -36,6 +35,56 @@ def source_task(file: Lintable, task: Task) -> CommentedMap | None:
     path = get_path_to_task(file, task.line, data)
     result = TransformMixin.seek(path, data)
     return result if isinstance(result, CommentedMap) else None
+
+
+def variable_bindings(
+    file: Lintable, task: Task
+) -> list[tuple[Lintable, CommentedMap]]:
+    """Collect literal declarations without simulating Ansible precedence."""
+    data = _load_source(file.content)
+    if not isinstance(data, CommentedMap | CommentedSeq):
+        return []
+    result: list[tuple[Lintable, CommentedMap]] = []
+    files: set[Path] = set()
+    path = get_path_to_task(file, task.line, data)
+    for length in range(len(path) + 1):
+        parent = TransformMixin.seek(path[:length], data)
+        if not isinstance(parent, CommentedMap):
+            continue
+        variables = parent.get("vars")
+        if isinstance(variables, CommentedMap):
+            result.append((file, variables))
+        vars_files = parent.get("vars_files", [])
+        for value in vars_files if isinstance(vars_files, list) else [vars_files]:
+            if isinstance(value, str) and not any(
+                marker in value for marker in ("{{", "{%")
+            ):
+                candidate = (file.path.parent / value).resolve()
+                if candidate.is_relative_to(file.path.parent.resolve()):
+                    files.add(candidate)
+    role = role_directory(file)
+    if role is not None:
+        files.update(
+            role / folder / name
+            for folder in ("defaults", "vars")
+            for name in ("main.yml", "main.yaml")
+        )
+    for source in sorted(files):
+        if not source.is_file():
+            continue
+        try:
+            definition = Lintable(source)
+            variables = _load_source(definition.content)
+        except (OSError, UnicodeError, YAMLError):
+            continue
+        if isinstance(variables, CommentedMap):
+            result.append((definition, variables))
+    return result
+
+
+def inline_comment(mapping: CommentedMap, key: str) -> str:
+    tokens = mapping.ca.items.get(key)
+    return tokens[2].value.splitlines()[0] if tokens and tokens[2] else ""
 
 
 def role_directory(file: Lintable) -> Path | None:

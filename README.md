@@ -39,6 +39,7 @@ enable_list:
   - "foundata-fact-vars"
   - "foundata-notify"
   - "foundata-loop-collision"
+  - "foundata-set-fact"
   - "foundata-handler-listen"
   - "foundata-task-order"
   - "foundata-file-mode"

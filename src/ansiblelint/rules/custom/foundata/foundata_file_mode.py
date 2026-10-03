@@ -6,9 +6,15 @@ from typing import TYPE_CHECKING, override
 
 from ruamel.yaml.comments import CommentedMap
 
+from ansible_lint_foundata.expressions import variable_reference
 from ansible_lint_foundata.policy import builtin_module_name, file_mode_message
 from ansible_lint_foundata.rules import FoundataRule
-from ansible_lint_foundata.source import key_origin, source_task
+from ansible_lint_foundata.source import (
+    inline_comment,
+    key_origin,
+    source_task,
+    variable_bindings,
+)
 
 if TYPE_CHECKING:
     from ansiblelint.errors import MatchError
@@ -57,12 +63,34 @@ class FoundataFileModeRule(FoundataRule):
             origin = key_origin(parameters, "mode")
             if origin is None:
                 continue
-            comment_tokens = origin.ca.items.get("mode")
-            comment = (
-                comment_tokens[2].value.splitlines()[0]
-                if comment_tokens and comment_tokens[2]
-                else ""
-            )
+            comment = inline_comment(origin, "mode")
+            reference = variable_reference(parameters["mode"])
+            if reference is not None:
+                for source, variables in variable_bindings(file, task):
+                    mapping = variables
+                    for part in reference[:-1]:
+                        value = mapping.get(part)
+                        if not isinstance(value, CommentedMap):
+                            break
+                        mapping = value
+                    else:
+                        definition = key_origin(mapping, reference[-1])
+                        if definition is None:
+                            continue
+                        message = file_mode_message(
+                            mapping[reference[-1]],
+                            inline_comment(definition, reference[-1]),
+                        )
+                        if message is not None:
+                            line = definition.lc.key(reference[-1])[0] + 1
+                            results.append(
+                                self.create_matcherror(
+                                    message=f"Mode definition {'.'.join(reference)} at {source.name}:{line}: {message}",
+                                    filename=file,
+                                    data=task.raw_task,
+                                )
+                            )
+                continue
             message = file_mode_message(parameters["mode"], comment)
             if message is None:
                 continue
