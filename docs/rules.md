@@ -25,9 +25,11 @@ adopt and document SHOULD-level rules enforced as CI errors.
 
 ### Boundaries
 
-- Conditions: this alpha does not split `and`, infer runtime types, rewrite
+- Conditions: the list rule does not yet cover `until` or validate boolean
+  expression results. It does not split `and`, infer runtime types, rewrite
   role-list conditions or fix invalid scalar types. Fixes preserve anchored
-  booleans and other scalar alias uses.
+  booleans and other scalar alias uses. Review mixed AND/OR grouping and
+  command-specific exit codes separately.
 - Handlers: check handler files and inline play handlers. Exempt static
   `import_tasks` directives, but check their handlers. Dynamic `include_tasks`
   handlers need topics on the include itself. Follow literal static imports,
