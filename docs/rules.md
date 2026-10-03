@@ -34,6 +34,11 @@ adopt and document SHOULD-level rules enforced as CI errors.
   including nested imports missed by stock discovery, with cycle protection
   and stock path resolution/exclusions. No dynamic-path inference, cross-file
   `notify` resolution (including multiple parents) or public-topic migration.
+  Topic prefixes, actions and objects are not yet checked. The guideline permits
+  documented migration aliases, but this check still rejects mixed-case values.
+  Use task-local `# noqa: foundata-handler-listen` for such aliases, with an
+  adjacent migration comment and documented removal version; review the other
+  handler requirements manually.
 - Ordering: stock `key-order` owns `name` first and `block`, `rescue`, `always`
   last. Report only additional violations. Module-parameter ordering and
   undocumented groups for unknown keys are outside scope.
