@@ -142,17 +142,21 @@ def has_quote_filter(value: str) -> bool:
     )
 
 
-def template_environment(content: str) -> Environment:
+def template_environment(
+    content: str, overrides: dict[str, object] | None = None
+) -> Environment:
     """Honor literal template delimiter headers without executing their values."""
     environment = Environment(optimized=False)
-    if not content.startswith("#jinja2:"):
-        return environment
-    header = content.splitlines()[0].removeprefix("#jinja2:")
+    header = (
+        content.splitlines()[0].removeprefix("#jinja2:")
+        if content.startswith("#jinja2:")
+        else ""
+    )
     try:
         expression = ast.parse("{" + header + "}", mode="eval").body
         if not isinstance(expression, ast.Dict):
             raise ValueError("Jinja environment header must be a mapping")
-        options: dict[str, object] = {}
+        options: dict[str, object] = dict(overrides or {})
         for key, literal in zip(expression.keys, expression.values, strict=True):
             if not isinstance(key, ast.Name):
                 raise ValueError("Jinja environment keys must be identifiers")

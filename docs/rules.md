@@ -94,14 +94,16 @@ adopt and document SHOULD-level rules enforced as CI errors.
   names, plugin availability, canonical aliases, play variables, vars files
   and template-file plugin calls. Never rewrite qualified third-party names
   to builtins.
-- Template inputs: treat selected `.j2` files as Ansible templates. Support
-  literal delimiter headers; report invalid or unsupported syntax as
-  `[unresolved]`. Renderer-provided metadata has no exemption. Call-site input
-  completeness, imports/includes/inheritance and task-specific delimiter
-  overrides are unchecked. Inherited template-local values may be reported as
-  external inputs. Exclude unrelated application templates. For these false
-  positives or intentionally different interfaces, use first-line
-  `noqa: foundata-template-inputs` comments with an explanation.
+- Template inputs: follow literal local includes, imports and inheritance with
+  lexical locals and context-free macro interfaces. Honor root delimiter headers
+  and literal task overrides. Check unconditional input references against task
+  `vars`; optional/defaulted inputs, conditional branches and macro execution
+  remain runtime concerns. Static parents own fragment analysis; standalone
+  fragments without discoverable callers may need an explained first-line
+  `noqa: foundata-template-inputs`. Exclusions, dynamic paths, cycles and the
+  128-visit limit leave requirements unresolved. Invalid syntax is reported as
+  `[unresolved]`. Renderer metadata has no exemption. Exclude unrelated
+  application templates; no templates or bindings are rewritten.
 - Command argv: check `quote` filter calls and literal higher-order uses. Do not
   infer intent from literal quote characters, inspect dynamic argv definitions
   or rewrite shell command strings.
@@ -151,8 +153,6 @@ Not yet implemented; guideline obligations still apply:
 
 - Context-aware quoting and broader Jinja style coverage.
 - Jinja plugin coverage outside tasks and dictionary retrieval.
-- Template call-site input completeness, imports/includes and task-specific
-  delimiter overrides.
 - Parsed top-level `and` diagnostics, explicit predicates and categorical facts.
 - Module-parameter order and additional mapping-form argument checks.
 - Internal-variable scope beyond statically resolved loop collisions.
