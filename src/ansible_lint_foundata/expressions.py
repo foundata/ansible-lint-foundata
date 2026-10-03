@@ -10,6 +10,45 @@ from jinja2 import Environment, TemplateSyntaxError, nodes
 from ansible_lint_foundata.policy import template_names
 
 
+def expression_node(value: str) -> nodes.Expr | None:
+    """Parse one implicit expression without compiling or evaluating it."""
+    try:
+        template = Environment(optimized=False).parse("{{ " + value + " }}")
+    except TemplateSyntaxError:
+        return None
+    if len(template.body) == 1 and isinstance(template.body[0], nodes.Output):
+        output = template.body[0].nodes
+        if len(output) == 1 and isinstance(output[0], nodes.Expr):
+            return output[0]
+    return None
+
+
+def nonboolean_condition(value: object) -> bool:
+    """Reject only known nonboolean results; never infer variable/plugin types."""
+    if isinstance(value, bool):
+        return False
+    if not isinstance(value, str):
+        return True
+    expression = expression_node(value)
+    return expression is not None and _nonboolean_node(expression)
+
+
+def _nonboolean_node(node: nodes.Expr) -> bool:
+    if isinstance(node, nodes.Const):
+        return not isinstance(node.value, bool)
+    if isinstance(node, nodes.List | nodes.Dict | nodes.Tuple | nodes.Concat):
+        return True
+    if isinstance(node, nodes.And | nodes.Or):
+        return _nonboolean_node(node.left) and _nonboolean_node(node.right)
+    if isinstance(node, nodes.CondExpr) and node.expr2 is not None:
+        return _nonboolean_node(node.expr1) and _nonboolean_node(node.expr2)
+    if isinstance(node, nodes.Neg | nodes.Pos):
+        return isinstance(node.node, nodes.Const) and isinstance(
+            node.node.value, int | float
+        )
+    return False
+
+
 def plugin_references(value: str, *, implicit: bool = False) -> list[tuple[str, int]]:
     """Find literal plugin names, including higher-order filter arguments."""
     if not implicit and not any(marker in value for marker in ("{{", "{%")):

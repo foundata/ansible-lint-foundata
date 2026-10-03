@@ -35,6 +35,7 @@ profile: "production"
 strict: true
 enable_list:
   - "foundata-condition-list"
+  - "foundata-condition-bool"
   - "foundata-handler-listen"
   - "foundata-task-order"
   - "foundata-file-mode"

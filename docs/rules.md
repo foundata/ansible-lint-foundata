@@ -12,7 +12,8 @@ adopt and document SHOULD-level rules enforced as CI errors.
 
 |         Rule ID          | Guide level |                                                    Scope and detection                                                     | Autofix |
 | ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------- | ------- |
-| foundata-condition-list  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`.                                                | Wrap strings/booleans only. |
+| foundata-condition-list  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                       | Wrap strings/booleans only. |
+| foundata-condition-bool  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                      | None.   |
 | foundata-handler-listen  | MUST        | Require nonempty lists of static lowercase handler topics, including legacy aliases.                                       | Wrap a valid scalar topic; never rename. |
 | foundata-task-order      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                            | None: stock owns ordering autofix. |
 | foundata-file-mode       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.         | None: resolve mode/comment disagreements manually. |
@@ -25,8 +26,10 @@ adopt and document SHOULD-level rules enforced as CI errors.
 
 ### Boundaries
 
-- Conditions: the list rule does not yet cover `until` or validate boolean
-  expression results. It does not split `and`, infer runtime types, rewrite
+- Conditions: cover `when`, `changed_when`, `failed_when` and `until`. Boolean
+  checks reject literal nonbooleans and expressions whose branches are all
+  known nonboolean. They do not evaluate plugins or infer runtime types.
+  Neither rule splits `and`, rewrites
   role-list conditions or fix invalid scalar types. Fixes preserve anchored
   booleans and other scalar alias uses. Review mixed AND/OR grouping and
   command-specific exit codes separately.

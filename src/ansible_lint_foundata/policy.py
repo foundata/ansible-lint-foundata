@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from jinja2 import Environment, TemplateSyntaxError, meta, nodes, pass_context
 from jinja2.runtime import Context
 
-CONDITION_KEYS = ("when", "changed_when", "failed_when")
+CONDITION_KEYS = ("when", "changed_when", "failed_when", "until")
 STOCK_TASK_BOUNDARIES = ("name", "block", "rescue", "always")
 _TASK_KEYS = (
     "name",

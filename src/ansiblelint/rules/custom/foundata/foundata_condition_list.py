@@ -28,7 +28,7 @@ class ConditionKey(RuleMatchTransformMeta):
 
 
 class FoundataConditionListRule(FoundataRule, TransformMixin):
-    """Use lists for when, changed_when and failed_when."""
+    """Use lists for when, changed_when, failed_when and until."""
 
     id = "foundata-condition-list"
     description = "Represent even a single condition as a list item."

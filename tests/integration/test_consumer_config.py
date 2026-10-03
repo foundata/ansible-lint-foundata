@@ -33,6 +33,8 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
     path: "/tmp/example"
     mode: "0644"
   when: true
+  until:
+    - "'ready'"
 
 - name: "Debug {{ item }}"
   ansible.builtin.debug:

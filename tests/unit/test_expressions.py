@@ -4,10 +4,47 @@ import pytest
 
 from ansible_lint_foundata.expressions import (
     has_quote_filter,
+    nonboolean_condition,
     plugin_references,
     template_environment,
 )
 from ansible_lint_foundata.policy import template_names
+
+
+@pytest.mark.parametrize(
+    ("value", "invalid"),
+    [
+        (True, False),
+        (False, False),
+        (0, True),
+        (None, True),
+        ({}, True),
+        ("true", False),
+        ("false", False),
+        ("'false'", True),
+        ("1", True),
+        ("none", True),
+        ("[true]", True),
+        ("{}", True),
+        ("(1, 2)", True),
+        ("-1", True),
+        ("'a' ~ value", True),
+        ("1 or 'x'", True),
+        ("'a' if enabled else []", True),
+        ("true if enabled else 0", False),
+        ("value", False),
+        ("value | ansible.builtin.bool", False),
+        ("value is ansible.builtin.defined", False),
+        ("not value", False),
+        ("value == 'x'", False),
+        ("value or 'x'", False),
+        ("broken (", False),
+        ("{{ value }}", False),
+        ("lookup('pipe', 'never execute')", False),
+    ],
+)
+def test_provably_nonboolean_conditions(value: object, invalid: bool) -> None:
+    assert nonboolean_condition(value) is invalid
 
 
 @pytest.mark.parametrize(
