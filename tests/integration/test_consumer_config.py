@@ -67,6 +67,16 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
     (tmp_path / "templates/example.j2").write_text(
         "{{ inventory_hostname }}\n", encoding="utf-8"
     )
+    (tmp_path / "playbook.yml").write_text(
+        '---\n- name: "Graph checks"\n  hosts: "localhost"\n  tasks:\n'
+        '    - name: "Missing notification"\n      ansible.builtin.debug:\n        msg: "Example"\n        verbosity: 1\n      notify: "missing_topic"\n'
+        '    - name: "Outer loop"\n      ansible.builtin.include_tasks: "tasks/inner.yml"\n      loop: [1]\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "tasks/inner.yml").write_text(
+        '---\n- name: "Inner loop"\n  ansible.builtin.debug:\n    msg: "Example"\n    verbosity: 1\n  loop: [2]\n',
+        encoding="utf-8",
+    )
     result = run_lint(
         tmp_path,
         "--format",
@@ -74,6 +84,7 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
         "tasks/main.yml",
         "handlers/main.yml",
         "templates/example.j2",
+        "playbook.yml",
     )
     custom = {
         item["check_name"]

@@ -4,6 +4,8 @@ RULE_IDS = (
     "foundata-condition-list",
     "foundata-condition-bool",
     "foundata-fact-vars",
+    "foundata-notify",
+    "foundata-loop-collision",
     "foundata-handler-listen",
     "foundata-task-order",
     "foundata-file-mode",

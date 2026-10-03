@@ -24,6 +24,8 @@ adopt and document SHOULD-level rules enforced as CI errors.
 | foundata-template-inputs | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                    | None: inputs define the interface. |
 | foundata-command-argv    | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                     | None: preserve arguments for review. |
 | foundata-fact-vars       | MUST        | Check known injected fact references in task expressions, play vars and vars files.                                         | None: review host and variable scope. |
+| foundata-notify          | MUST        | Resolve static local notifications; reject name coupling and missing targets in closed plays.                               | None: never rename topics. |
+| foundata-loop-collision  | MUST        | Detect loop/index bindings that shadow outer include/role loop bindings.                                                    | None: renaming changes references. |
 
 ### Boundaries
 
@@ -38,14 +40,20 @@ adopt and document SHOULD-level rules enforced as CI errors.
   `import_tasks` directives, but check their handlers. Dynamic `include_tasks`
   handlers need topics on the include itself. Follow literal static imports,
   including nested imports missed by stock discovery, with cycle protection
-  and stock path resolution/exclusions. No dynamic-path inference, cross-file
-  `notify` resolution (including multiple parents) or public-topic migration.
+  and stock path resolution/exclusions.
   Recognized roles require `role[_collection]_<action>_<object>` topics.
   Adjacent `Shared broadcast` comments permit intentional shared topics.
   `Migration alias; remove in 3.0.0.` comments permit published legacy names,
   including mixed case. Review the stated purpose and removal deadline.
   Unknown role layouts retain lowercase checks; use an explained local
   suppression for a different public prefix. Topics are never renamed.
+- Graph checks: follow literal local task includes/imports, role entry points
+  and dependencies, with separate play namespaces and include-loop contexts.
+  Respect exclusions and project boundaries; cap traversal at 128 file contexts
+  and 5,000 tasks. Dynamic/external references, cycles and limits leave the
+  graph open. Report missing notifications only in closed plays; reusable roles
+  may notify external topics. Known handler-name coupling is still reported.
+  Resolve conventional local roles; custom search paths remain unresolved.
 - Ordering: stock `key-order` owns `name` first and `block`, `rescue`, `always`
   last. Report only additional violations. Module-parameter ordering and
   undocumented groups for unknown keys are outside scope. The guide's optional
@@ -147,7 +155,7 @@ Not yet implemented; guideline obligations still apply:
   delimiter overrides.
 - Parsed top-level `and` diagnostics, explicit predicates and categorical facts.
 - Module-parameter order and additional mapping-form argument checks.
-- Internal-variable scope and cross-file nested-loop collisions.
+- Internal-variable scope beyond statically resolved loop collisions.
 - Selective `with_*` migration preserving lookup and flattening semantics.
 - Command interpolation, literal-dollar expansion, and overwriting inputs with
   `set_fact`.

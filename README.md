@@ -7,7 +7,7 @@ This is an optional extension, not a fork or replacement command.
 ## Table of contents
 
 - [Installation](#installation)
-- [Formatting and Safety](#formatting-and-safety)
+- [Formatting and Safety](#formatting-safety)
 - [Licensing, copyright](#licensing-copyright)
   - [Trademarks](#trademarks)
 - [Author information](#author-information)
@@ -37,6 +37,8 @@ enable_list:
   - "foundata-condition-list"
   - "foundata-condition-bool"
   - "foundata-fact-vars"
+  - "foundata-notify"
+  - "foundata-loop-collision"
   - "foundata-handler-listen"
   - "foundata-task-order"
   - "foundata-file-mode"
@@ -83,7 +85,7 @@ review concerns. Adopting the example also adopts its SHOULD-level checks as
 errors. Keep changelog validation in a separate CI step.
 
 
-## Formatting and Safety<a id="formatting-and-safety"></a>
+## Formatting and Safety<a id="formatting-safety"></a>
 
 Ansible Lint owns YAML formatting. This package does not restore blank lines
 removed by `--fix`, require a blank line at EOF, or replace its serializer.
