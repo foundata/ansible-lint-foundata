@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ansiblelint.file_utils import find_role_dir
 from ansiblelint.utils import task_in_list
 from ansiblelint.yaml_utils import get_path_to_task
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.tokens import CommentToken
 
 from ansible_lint_foundata.policy import builtin_module_name
 from ansiblelint.rules import TransformMixin
@@ -32,6 +35,52 @@ def source_task(file: Lintable, task: Task) -> CommentedMap | None:
     path = get_path_to_task(file, task.line, data)
     result = TransformMixin.seek(path, data)
     return result if isinstance(result, CommentedMap) else None
+
+
+def role_directory(file: Lintable) -> Path | None:
+    """Identify conventional collection roles and standalone role roots."""
+    role = find_role_dir(file.path.resolve())
+    if role is not None:
+        return role
+    for parent in file.path.resolve().parents:
+        if parent.name in {"tasks", "handlers", "vars", "defaults"}:
+            root = parent.parent
+            if (root / "meta/main.yml").is_file() or (
+                root / "meta/main.yaml"
+            ).is_file():
+                return root
+    return None
+
+
+@lru_cache(maxsize=16)
+def _comment_lines(content: str) -> dict[int, str]:
+    """Read scanner comment tokens, never hash characters inside YAML scalars."""
+    result: dict[int, str] = {}
+    for token in YAML(typ="rt").scan(content):
+        pending = list(token.comment or [])
+        while pending:
+            comment = pending.pop()
+            if isinstance(comment, list):
+                pending.extend(comment)
+            elif isinstance(comment, CommentToken):
+                for offset, text in enumerate(comment.value.splitlines()):
+                    if text.lstrip().startswith("#"):
+                        result[comment.start_mark.line + offset + 1] = text.lstrip()[
+                            1:
+                        ].strip()
+    return result
+
+
+def adjacent_comments(file: Lintable, line: int) -> str:
+    """Return inline and immediately preceding standalone comments for a line."""
+    comments = _comment_lines(file.content)
+    lines = file.content.splitlines()
+    selected = [comments.get(line, "")]
+    index = line - 2
+    while index >= 0 and lines[index].lstrip().startswith("#"):
+        selected.append(comments.get(index + 1, ""))
+        index -= 1
+    return " ".join(reversed(selected)).strip()
 
 
 def key_origin(mapping: CommentedMap, key: str) -> CommentedMap | None:

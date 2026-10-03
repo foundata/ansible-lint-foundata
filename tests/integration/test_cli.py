@@ -181,7 +181,7 @@ def test_opt_in_and_production_profile(
             "foundata-no-end-play",
             "tasks/main.yml",
             '- name: "Stop"\n  ansible.builtin.meta: "end_host"\n',
-            0,
+            1,
         ),
         (
             "foundata-task-name",

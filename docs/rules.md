@@ -10,19 +10,19 @@ Severity describes impact; enabled rules fail unless in `warn_list` or
 `skip_list`. With `strict: true`, warnings also fail. Projects must explicitly
 adopt and document SHOULD-level rules enforced as CI errors.
 
-|         Rule ID          | Guide level |                                                    Scope and detection                                                     | Autofix |
-| ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------- | ------- |
-| foundata-condition-list  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                       | Wrap strings/booleans only. |
-| foundata-condition-bool  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                      | None.   |
-| foundata-handler-listen  | MUST        | Require nonempty lists of static lowercase handler topics, including legacy aliases.                                       | Wrap a valid scalar topic; never rename. |
-| foundata-task-order      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                            | None: stock owns ordering autofix. |
-| foundata-file-mode       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.         | None: resolve mode/comment disagreements manually. |
-| foundata-debug-verbosity | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                            | None.   |
-| foundata-no-end-play     | Policy      | Reject `ansible.builtin.meta: end_play`.                                                                                   | None: `end_host` is not equivalent. |
-| foundata-task-name       | MUST NOT    | Reject templated play names and current-loop variable references in task names.                                            | None.   |
-| foundata-jinja-fqcn      | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments. | None: review provider resolution. |
-| foundata-template-inputs | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                   | None: inputs define the interface. |
-| foundata-command-argv    | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                    | None: preserve arguments for review. |
+|         Rule ID          | Guide level |                                                     Scope and detection                                                     | Autofix |
+| ------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| foundata-condition-list  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                        | Wrap strings/booleans only. |
+| foundata-condition-bool  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                       | None.   |
+| foundata-handler-listen  | MUST        | Require nonempty lists of static lowercase handler topics, including legacy aliases.                                        | Wrap a valid scalar topic; never rename. |
+| foundata-task-order      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                             | None: stock owns ordering autofix. |
+| foundata-file-mode       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.          | None: resolve mode/comment disagreements manually. |
+| foundata-debug-verbosity | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                             | None.   |
+| foundata-no-end-play     | Policy      | Require reviewed caller-termination exceptions for reusable content; check orchestration explanations and `end_role` scope. | None: `end_host` is not equivalent. |
+| foundata-task-name       | MUST NOT    | Reject templated play names and current-loop variable references in task names.                                             | None.   |
+| foundata-jinja-fqcn      | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments.  | None: review provider resolution. |
+| foundata-template-inputs | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                    | None: inputs define the interface. |
+| foundata-command-argv    | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                     | None: preserve arguments for review. |
 
 ### Boundaries
 
@@ -67,12 +67,12 @@ adopt and document SHOULD-level rules enforced as CI errors.
   infer intent from task names, paths or comments.
 - Debug output: check for `verbosity`. Review decides between normal output
   (`0`) and diagnostics (`1` or higher).
-- Play termination: the current rule rejects every `end_play`; it does not
-  check role/orchestration scope, `end_host` or `end_role` version requirements.
-  For a documented use permitted by the guideline, use task-local
-  `# noqa: foundata-no-end-play` with a scope explanation. Review reusable
-  roles' caller-termination contracts separately. Do not use `end_host` as a
-  workaround.
+- Play termination: require a reviewed task-local `# noqa: foundata-no-end-play`
+  for `end_play`/`end_host` in roles or task files whose caller scope is
+  unknown. Direct orchestration tasks require an adjacent explanation; review
+  its meaning. Reject `end_role` outside recognized roles or inside handlers.
+  Declared minimum core-version compatibility remains a review concern. Never
+  substitute `end_host` just to avoid a finding.
 - Names: exclude Jinja loop/macro/assignment locals. Check static
   `vars['name']`, `lookup`/`query`/`q` calls to `vars`, the current loop's index
   variable and `ansible_loop` metadata. Review dynamically constructed names and
