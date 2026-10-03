@@ -54,7 +54,11 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
 - Debug output: the rule checks that `verbosity` is present. Review determines
   whether output belongs in a normal run (`0`) or is diagnostic (`1` or higher).
 - Names: inherited outer-loop variables across included files are not resolved.
-  Malformed Jinja belongs to stock syntax diagnostics, not this rule.
+  Jinja loop/macro/assignment locals do not count as Ansible inputs. Static
+  `vars['name']` and `lookup`/`query`/`q` calls to the `vars` plugin are
+  checked, as are the current loop's index variable and `ansible_loop` metadata.
+  Dynamically constructed variable names require review. Malformed Jinja belongs
+  to stock syntax diagnostics, not this rule.
 
 ## Stock Coverage
 

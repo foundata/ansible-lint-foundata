@@ -145,6 +145,18 @@ def test_task_order_handles_old_loop_syntax_and_local_actions() -> None:
         ("Install item", set()),
         ("Install {{", set()),
         ("{% if enabled %}Deploy {{ target }}{% endif %}", {"enabled", "target"}),
+        ("{% for item in ['fixed'] %}{{ item }}{% endfor %}", set()),
+        ("{% set item = 'fixed' %}{{ item }}", set()),
+        ("{% macro label(item) %}{{ item }}{% endmacro %}{{ label('x') }}", set()),
+        ("{% with item = 'fixed' %}{{ item }}{% endwith %}", set()),
+        ("{% for item in items %}{{ item }}{% endfor %}{{ item }}", {"items", "item"}),
+        ("{{ item | example.filters.custom }}", {"item"}),
+        ("{{ item is example.tests.custom }}", {"item"}),
+        ("{{ vars['item'] }}", {"vars", "item"}),
+        ("{{ lookup('ansible.builtin.vars', 'item') }}", {"lookup", "item"}),
+        ("{{ query('vars', 'item', 'position') }}", {"query", "item", "position"}),
+        ("{{ q('other.collection.vars', 'item') }}", {"q"}),
+        ("{% set vars = {'item': 'fixed'} %}{{ vars['item'] }}", set()),
     ],
 )
 def test_template_names_parse_expressions_not_substrings(

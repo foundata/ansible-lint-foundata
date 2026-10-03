@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 
-from jinja2 import Environment, TemplateSyntaxError, nodes
+from jinja2 import Environment, TemplateSyntaxError, meta, nodes, pass_context
+from jinja2.runtime import Context
 
 CONDITION_KEYS = ("when", "changed_when", "failed_when")
 _TASK_KEYS = (
@@ -123,11 +124,47 @@ def file_mode_message(value: object, comment: str) -> str | None:
     return None
 
 
+@pass_context
+def _analysis_plugin(context: Context, *args: object, **kwargs: object) -> None:
+    """Prevent constant folding from executing filters or tests during analysis."""
+
+
 def template_names(value: str) -> set[str]:
-    """Collect Jinja name references without evaluating the template or plugins."""
+    """Collect external references using Jinja's lexical scope analysis."""
+    environment = Environment(optimized=False)
     try:
-        template = Environment().parse(value)
+        template = environment.parse(value)
+        # Meta analysis compiles but never renders. Context-dependent inert
+        # plugins accept collection names without loading or running plugins.
+        for node in template.find_all(nodes.Filter):
+            environment.filters[node.name] = _analysis_plugin
+        for test in template.find_all(nodes.Test):
+            environment.tests[test.name] = _analysis_plugin
+        names = meta.find_undeclared_variables(template)
     except TemplateSyntaxError:
         # Syntax diagnostics belong to Ansible Lint's existing Jinja rule.
         return set()
-    return {node.name for node in template.find_all(nodes.Name) if node.ctx == "load"}
+    if "vars" in names:
+        for access in template.find_all(nodes.Getitem):
+            if (
+                isinstance(access.node, nodes.Name)
+                and access.node.name == "vars"
+                and isinstance(access.arg, nodes.Const)
+                and isinstance(access.arg.value, str)
+            ):
+                names.add(access.arg.value)
+    for call in template.find_all(nodes.Call):
+        if (
+            isinstance(call.node, nodes.Name)
+            and call.node.name in names & {"lookup", "query", "q"}
+            and call.args
+            and isinstance(call.args[0], nodes.Const)
+            and call.args[0].value
+            in ("vars", "ansible.builtin.vars", "ansible.legacy.vars")
+        ):
+            names.update(
+                argument.value
+                for argument in call.args[1:]
+                if isinstance(argument, nodes.Const) and isinstance(argument.value, str)
+            )
+    return names

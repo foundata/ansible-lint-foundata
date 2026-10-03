@@ -57,5 +57,6 @@ class FoundataTaskNameRule(FoundataRule):
             for variable in (
                 loop_control.get("loop_var", "item"),
                 loop_control.get("index_var"),
+                "ansible_loop",
             )
         )
