@@ -149,9 +149,11 @@ cannot make a mutating operation idempotent.
 Review module choices, comment usefulness, template decomposition and runtime
 types. Boolean conversion requires supported inputs; Python truthiness is a
 separate choice. Literal command arguments need `expand_argument_vars: false`
-and no shell quoting in `argv`. Use ShellCheck alongside the existing Bash/POSIX
-and error-handling policies. Use native data and serialization filters for
-structured output.
+and no shell quoting in `argv`. ShellCheck covers shell syntax and dialect
+checks; review Bash availability, shell-version requirements and explicit error
+handling separately. Keep stock `risky-shell-pipe` enabled and test critical
+failure paths on supported shells. Use native data and serialization filters
+for structured output.
 
 Keep suppressions local, rule-specific and explained for allowed exceptions or
 false positives. Required CI must check discovery with
