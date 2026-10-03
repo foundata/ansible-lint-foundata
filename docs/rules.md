@@ -20,6 +20,9 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
 | foundata-debug-verbosity | MUST        | Debug tasks explicitly supply `verbosity`; zero is accepted for output intended for normal runs.                                        | None.   |
 | foundata-no-end-play     | Policy      | Reject `ansible.builtin.meta: end_play`.                                                                                                | None: `end_host` is not equivalent. |
 | foundata-task-name       | MUST NOT    | Reject templated play names and references to the current loop variable in a looping task's name.                                       | None.   |
+| foundata-jinja-fqcn      | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments.              | None: provider resolution requires review. |
+| foundata-template-inputs | MUST        | Selected Jinja files use `tpl_*` external inputs, exempting lexical locals and native Jinja globals.                                    | None: changing inputs changes the interface. |
+| foundata-command-argv    | MUST NOT    | Reject shell-quoting filters applied in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                         | None: preserve argument values for review. |
 
 ### Boundaries
 
@@ -30,6 +33,9 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
   task files identified as handlers and inline play handlers are checked.
   Static `import_tasks` directives are exempt; their imported handlers are not.
   Dynamic `include_tasks` handlers need topics on the include itself.
+  Literal static imports are followed with cycle protection and the stock path
+  resolver/exclusions, including nested imports stock discovery does not visit.
+  Dynamic paths and multi-parent notification resolution are not inferred.
 - Ordering: module-parameter ordering is not implemented. Unknown task keys are
   not guessed into undocumented groups. Stock `key-order` remains responsible
   for `name` first and `block`, `rescue`, `always` last. The extension reports
@@ -60,6 +66,23 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
   checked, as are the current loop's index variable and `ansible_loop` metadata.
   Dynamically constructed variable names require review. Malformed Jinja belongs
   to stock syntax diagnostics, not this rule.
+- Jinja FQCNs: task-level diagnostics cover literal plugin names, including
+  `map`, `select`, `reject`, `selectattr`, `rejectattr` and lookup/query/q
+  arguments. Native globals and comparison-operator test aliases are not
+  collection names. Dynamic plugin names, plugin availability, canonical alias
+  resolution, play variables, vars files and template-file plugin calls remain
+  review concerns. Qualified third-party names are never rewritten to builtins.
+- Template inputs: selected `.j2` files are treated as Ansible templates.
+  Literal delimiter headers are supported; invalid or unsupported syntax is an
+  explicit `[unresolved]` finding, not a clean result. This does not yet prove
+  that calling tasks supply every input, resolve imports/includes, or account
+  for task-specific delimiter overrides. Exclude unrelated application
+  templates from this opt-in check.
+  A first-line `noqa: foundata-template-inputs` comment suppresses the check for
+  an intentionally different template interface; explain the exception there.
+- Command argv: check `quote` filter calls and literal higher-order uses in
+  argv expressions. Do not infer intent from literal quote characters, inspect
+  dynamically supplied argv definitions, or rewrite shell command strings.
 
 ## Stock Coverage
 
@@ -97,15 +120,14 @@ return after an upstream composition mechanism is available and tested.
 These remain guide obligations, not implemented coverage claims:
 
 - Context-aware quoting and broader Jinja style coverage.
-- Jinja plugin FQCNs, dictionary retrieval and injected-fact references.
-- Template `tpl_*` inputs for external data, including ambient Ansible
-  variables. Template-local variables, loop variables, macro parameters and
-  Jinja built-in facilities do not need the prefix.
+- Jinja plugin coverage outside tasks, dictionary retrieval and injected facts.
+- Template call-site input completeness, imports/includes and task-specific
+  delimiter overrides.
 - Parsed top-level `and` diagnostics, explicit predicates and categorical facts.
 - Module-parameter order and additional mapping-form argument checks.
 - Internal-variable scope and cross-file nested-loop collisions.
 - Selective `with_*` migration preserving lookup and flattening semantics.
-- Command interpolation, `argv`, and overwriting input variables with
+- Command interpolation, literal-dollar expansion, and overwriting inputs with
   `set_fact`.
 - Contextual file naming, loader extensions and comment structure.
 
@@ -146,3 +168,29 @@ consumer configuration is exercised this way by integration tests.
   expected rule IDs are discovered. Rebuild the sdist to check its completeness.
 - Test Python 3.12, 3.13 and 3.14 and both the supported lower dependency bound
   and the locked development environment before claiming compatibility.
+
+## Proposed Guideline Revisions
+
+The following are policy proposals, not silently adopted rule changes. They
+are distinct from the stock-compatibility corrections already made in the
+guideline. Decide these interfaces before implementing cross-file enforcement.
+
+|         Area          |                                                                                                                                   Recommended change                                                                                                                                    | Enforcement consequence |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| Handler topics        | Namespace new role topics by their public role/collection prefix. Keep intentional shared broadcast topics explicit. Treat published topics as interfaces: allow documented, time-bounded legacy aliases during a migration instead of requiring an immediate breaking rename.          | Resolve literal notifications against a bounded role/play graph. Dynamic includes and external handlers must remain unresolved, not missing. Never rename topics automatically. |
+| Play termination      | Prohibit `end_play` and `end_host` inside reusable roles unless stopping their caller is an explicit contract. Prefer role-local control flow or `end_role` where the supported core version permits it. Allow deliberately play-wide termination in orchestration with an explanation. | Replace the blanket ban only after defining role versus orchestration scope. `end_host` still ends the rest of the play for that host and is not a general safe replacement. |
+| Static files          | Use `copy` for static files and `template` when rendering is actually needed; remove the preemptive-template recommendation.                                                                                                                                                            | Avoid a rule that recommends rendering otherwise literal file content merely for possible future use. |
+| Permission notation   | Consider permitting quoted four-digit octal modes alongside complete absolute symbolic modes. Make the duplicate octal comment optional if symbolic notation remains preferred. Keep explicit ownership/permissions and narrowly documented preservation exceptions.                    | Separate deterministic permission semantics from notation preference. Quoted octal is supported by Ansible and stock lint; this proposal is not a reason to relax the current rule silently. |
+| Template interfaces   | Keep explicit inputs, but distinguish external data from native Jinja facilities, locally declared names and renderer-provided metadata. Define how imports, includes, macros and alternative delimiters inherit the input interface.                                                   | Add task-to-template input completeness only for statically resolved call sites. Dynamic paths and runtime values require an explicit unresolved boundary. |
+| Shell execution       | State whether Bash availability is a supported-platform requirement. Otherwise use POSIX shell by default and require a capable shell for pipelines that need pipefail. Treat `set -e` as contextual, not a substitute for error handling.                                              | Keep stock pipeline checks; use ShellCheck for shell syntax instead of building another shell parser. Test critical statuses and substitutions. |
+| Conditions            | Explicitly include `until` and explain that lists are AND, especially for `failed_when` and `changed_when`. Show a single list item containing OR for alternative failures. Preserve task-status versus process-exit-status distinctions.                                               | Check definitely nonboolean literals first; do not reject unknown variables or split mixed AND/OR expressions automatically. |
+| Facts                 | Separate required fact keys from collector subsets. Show `!all` and `!min` when the example promises to collect only selected subsets, and document freshness requirements rather than treating presence as freshness.                                                                  | Check known injected fact names, not every `ansible_*` variable. Runtime tests remain necessary for missing or stale facts. |
+| Quoting and ordering  | Define exceptions by syntax context, not the phrase "local Ansible environment". Keep optional-parameter alphabetization advisory; clarify that it never applies to arbitrary application data.                                                                                         | Avoid blanket quote insertion and recursive dictionary sorting. The stock formatter remains authoritative. |
+| Examples and adoption | Test complete positive examples against the adopted configuration; label incomplete snippets and their prerequisites. Record the guideline revision and supported core/lint versions alongside adopted rule IDs.                                                                        | Catch stale examples and changes in upstream behavior, including rules listed in profiles but not yet implemented. |
+
+After those decisions, prioritize a cycle-safe static file graph for template
+inputs, notifications and nested loop-variable collisions. Follow it with
+literal variable-mode definitions and input/default collisions in `set_fact`.
+Keep unknown dynamic references visible as unresolved review work. Lower-value
+style checks, such as contextual quoting and optional parameter order, come
+last and should not change execution semantics.
