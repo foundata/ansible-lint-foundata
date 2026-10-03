@@ -52,6 +52,17 @@ def ordered_task_keys(keys: Sequence[str], action: str) -> list[str]:
     return [next(known) if key in ranks else key for key in keys]
 
 
+def is_handler_topic(value: object) -> bool:
+    """Accept nonempty static lowercase topics without changing their spelling."""
+    return (
+        isinstance(value, str)
+        and bool(value.strip())
+        and value == value.lower()
+        and "{{" not in value
+        and "{%" not in value
+    )
+
+
 def absolute_mode(value: str) -> int | None:
     """Return a fixed permission mode, rejecting state-dependent symbolic forms.
 
@@ -88,6 +99,19 @@ def mode_comment_matches(mode: int, comment: str) -> bool:
     """Check the leading octal representation in an inline YAML comment."""
     match = _OCTAL_COMMENT.match(comment)
     return match is not None and int(match.group(1), 8) == mode
+
+
+def file_mode_message(value: object, comment: str) -> str | None:
+    """Describe an invalid literal mode or its missing octal documentation."""
+    # Runtime modes are review/test concerns, not statically known values.
+    if isinstance(value, str) and ("{{" in value or "{%" in value):
+        return None
+    number = absolute_mode(value) if isinstance(value, str) else None
+    if number is None:
+        return "Use a complete absolute symbolic mode, such as u=rw,g=r,o=r."
+    if not mode_comment_matches(number, comment):
+        return f"Document this mode with a matching inline # {number:04o} comment."
+    return None
 
 
 def template_names(value: str) -> set[str]:

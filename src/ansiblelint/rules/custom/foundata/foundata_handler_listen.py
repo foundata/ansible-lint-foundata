@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, override
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from ansible_lint_foundata.fixes import wrap_scalar_list
+from ansible_lint_foundata.policy import is_handler_topic
 from ansiblelint.rules import AnsibleLintRule, TransformMixin
 
 if TYPE_CHECKING:
@@ -34,14 +35,7 @@ class FoundataHandlerListenRule(AnsibleLintRule, TransformMixin):
         if not isinstance(value, list):
             messages.append("Define listen as a nonempty list of lowercase topics.")
         topics = value if isinstance(value, list) else [value]
-        if not topics or any(
-            not isinstance(topic, str)
-            or not topic.strip()
-            or topic != topic.lower()
-            or "{{" in topic
-            or "{%" in topic
-            for topic in topics
-        ):
+        if not topics or any(not is_handler_topic(topic) for topic in topics):
             messages.append("Listen topics must be nonempty, static lowercase strings.")
         return [
             self.create_matcherror(message=message, filename=file, data=task.raw_task)
@@ -56,14 +50,6 @@ class FoundataHandlerListenRule(AnsibleLintRule, TransformMixin):
         data: CommentedMap | CommentedSeq | str,
     ) -> None:
         task = self.seek(match.yaml_path, data)
-        if isinstance(task, CommentedMap):
-            value = task.get("listen")
-            if (
-                isinstance(value, str)
-                and value.strip()
-                and value == value.lower()
-                and "{{" not in value
-                and "{%" not in value
-            ):
-                wrap_scalar_list(task, "listen")
-                match.fixed = True
+        if isinstance(task, CommentedMap) and is_handler_topic(task.get("listen")):
+            wrap_scalar_list(task, "listen")
+            match.fixed = True

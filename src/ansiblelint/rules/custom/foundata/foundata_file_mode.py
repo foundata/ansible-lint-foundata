@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, override
 
 from ruamel.yaml.comments import CommentedMap
 
-from ansible_lint_foundata.policy import absolute_mode, mode_comment_matches
+from ansible_lint_foundata.policy import file_mode_message
 from ansible_lint_foundata.source import source_task
 from ansiblelint.rules import AnsibleLintRule
 
@@ -54,24 +54,14 @@ class FoundataFileModeRule(AnsibleLintRule):
             parameters = original.get(key)
             if not isinstance(parameters, CommentedMap) or "mode" not in parameters:
                 continue
-            value = parameters["mode"]
-            # Runtime modes are review/test concerns, not statically known values.
-            if isinstance(value, str) and ("{{" in value or "{%" in value):
-                continue
-            number = absolute_mode(value) if isinstance(value, str) else None
             comment_tokens = parameters.ca.items.get("mode")
             comment = (
                 comment_tokens[2].value.splitlines()[0]
                 if comment_tokens and comment_tokens[2]
                 else ""
             )
-            if number is None:
-                message = "Use a complete absolute symbolic mode, such as u=rw,g=r,o=r."
-            elif not mode_comment_matches(number, comment):
-                message = (
-                    f"Document this mode with a matching inline # {number:04o} comment."
-                )
-            else:
+            message = file_mode_message(parameters["mode"], comment)
+            if message is None:
                 continue
             results.append(
                 self.create_matcherror(
