@@ -1,7 +1,6 @@
 # Rule contract
 
-Rule IDs and behavior are provisional until 1.0.0. Existing violations,
-including guide examples, receive no automatic exemptions.
+Rules apply to existing violations, including guideline examples.
 
 ## Implemented rules
 
@@ -10,25 +9,25 @@ Severity describes impact; enabled rules fail unless in `warn_list` or
 `skip_list`. With `strict: true`, warnings also fail. Projects must explicitly
 adopt and document SHOULD-level rules enforced as CI errors.
 
-|         Rule ID          | Guide level |                                                     Scope and detection                                                     | Autofix |
-| ------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
-| foundata-condition-list  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                        | Wrap strings/booleans only. |
-| foundata-condition-bool  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                       | None.   |
-| foundata-handler-listen  | MUST        | Require scoped topic lists; allow documented broadcasts and versioned migration aliases.                                    | Wrap a valid scalar topic; never rename. |
-| foundata-task-order      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                             | None: stock owns ordering autofix. |
-| foundata-file-mode       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.          | None: resolve mode/comment disagreements manually. |
-| foundata-debug-verbosity | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                             | None.   |
-| foundata-no-end-play     | Policy      | Require reviewed caller-termination exceptions for reusable content; check orchestration explanations and `end_role` scope. | None: `end_host` is not equivalent. |
-| foundata-task-name       | MUST NOT    | Reject templated play names and current-loop variable references in task names.                                             | None.   |
-| foundata-jinja-fqcn      | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments.  | None: review provider resolution. |
-| foundata-template-inputs | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                    | None: inputs define the interface. |
-| foundata-command-argv    | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                     | None: preserve arguments for review. |
-| foundata-fact-vars       | MUST        | Check known injected fact references in task expressions, play vars and vars files.                                         | None: review host and variable scope. |
-| foundata-notify          | MUST        | Resolve static local notifications; reject name coupling and missing targets in closed plays.                               | None: never rename topics. |
-| foundata-loop-collision  | MUST        | Detect loop/index bindings that shadow outer include/role loop bindings.                                                    | None: renaming changes references. |
-| foundata-set-fact        | SHOULD      | Reject overwrites of statically declared task/play variables, role defaults/vars and role argument options.                 | None: choose a separate state variable. |
-| foundata-string-quotes   | SHOULD      | Check ordinary task string values, excluding implicit expressions and binding identifiers.                                  | None.   |
-| foundata-parameter-order | SHOULD      | Group parameters of supported built-in modules, without sorting application data.                                           | None.   |
+|          Rule ID           | Guide level |                                                     Scope and detection                                                     | Autofix |
+| -------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `foundata-condition-list`  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                        | Wrap strings/booleans only. |
+| `foundata-condition-bool`  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                       | None.   |
+| `foundata-handler-listen`  | MUST        | Require scoped topic lists; allow documented broadcasts and versioned migration aliases.                                    | Wrap a valid scalar topic; never rename. |
+| `foundata-task-order`      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                             | None: stock owns ordering autofix. |
+| `foundata-file-mode`       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.          | None: resolve mode/comment disagreements manually. |
+| `foundata-debug-verbosity` | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                             | None.   |
+| `foundata-no-end-play`     | Policy      | Require reviewed caller-termination exceptions for reusable content; check orchestration explanations and `end_role` scope. | None: `end_host` is not equivalent. |
+| `foundata-task-name`       | MUST NOT    | Reject templated play names and current-loop variable references in task names.                                             | None.   |
+| `foundata-jinja-fqcn`      | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments.  | None: review provider resolution. |
+| `foundata-template-inputs` | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                    | None: inputs define the interface. |
+| `foundata-command-argv`    | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                     | None: preserve arguments for review. |
+| `foundata-fact-vars`       | MUST        | Check known injected fact references in task expressions, play vars and vars files.                                         | None: review host and variable scope. |
+| `foundata-notify`          | MUST        | Resolve static local notifications; reject name coupling and missing targets in closed plays.                               | None: never rename topics. |
+| `foundata-loop-collision`  | MUST        | Detect loop/index bindings that shadow outer include/role loop bindings.                                                    | None: renaming changes references. |
+| `foundata-set-fact`        | SHOULD      | Reject overwrites of statically declared task/play variables, role defaults/vars and role argument options.                 | None: choose a separate state variable. |
+| `foundata-string-quotes`   | SHOULD      | Check ordinary task string values, excluding implicit expressions and binding identifiers.                                  | None.   |
+| `foundata-parameter-order` | SHOULD      | Group parameters of supported built-in modules, without sorting application data.                                           | None.   |
 
 ### Boundaries
 
@@ -155,13 +154,8 @@ The extension adds constraints to stock
    `name` or follow block-related keys.
 4. Do not extend play ordering or recursively sort module parameters.
 
-This alpha removes the task-order autofix: Ansible Lint 26.9.0 replays stock's
-key order captured before other fixes, potentially undoing an extension's
-transform while both report success. The extension is diagnostic-only, leaving
-stock's fix intact and reporting remaining violations. Repeated fixes must be
-byte-stable. Do not disable stock, monkey-patch rules or coordinate transforms
-through diagnostic sort order. Combined autofix requires a tested upstream
-composition mechanism.
+Keep stock `key-order` enabled. `foundata-task-order` is diagnostic-only;
+apply its suggested middle-key order manually.
 
 ## Planned checks
 
