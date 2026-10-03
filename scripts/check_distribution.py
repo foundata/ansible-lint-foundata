@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
@@ -34,6 +35,24 @@ def main() -> None:
         work = Path(temporary)
         artifacts = work / "artifacts"
         run("uv", "build", "--out-dir", str(artifacts), cwd=root)
+        sdist = next(artifacts.glob("*.tar.gz"))
+        with tarfile.open(sdist) as archive:
+            members = {
+                Path(*Path(member.name).parts[1:]).as_posix()
+                for member in archive.getmembers()
+                if member.isfile()
+            }
+            required = {
+                "DEVELOPMENT.md",
+                "docs/rules.md",
+                "uv.lock",
+                "REUSE.toml",
+                "scripts/check_distribution.py",
+                "tests/integration/test_consumer_config.py",
+                "examples/consumer/.ansible-lint",
+                "examples/consumer/.yamllint",
+            }
+            assert required <= members, sorted(required - members)
         wheel = next(artifacts.glob("*.whl"))
         with zipfile.ZipFile(wheel) as archive:
             names = archive.namelist()
@@ -45,7 +64,7 @@ def main() -> None:
         run(
             "uv",
             "build",
-            str(next(artifacts.glob("*.tar.gz"))),
+            str(sdist),
             "--wheel",
             "--out-dir",
             str(work / "rebuilt"),

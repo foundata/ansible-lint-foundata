@@ -130,9 +130,11 @@ Structured output uses native data and serialization filters.
 
 Projects must document which SHOULD-level recommendations they enforce as
 errors. Keep suppressions local and specific, with an explanation for an allowed
-exception or false positive. Required CI must verify the expected enabled rule
-IDs with `ansible-lint --list-rules --format brief` in the environment used for
-linting. A stock-only local run does not check custom rules.
+exception or false positive. Required CI must verify discovery with
+`ansible-lint --list-rules --format brief` and execution with known-invalid
+fixtures in the environment used for linting. The listing bypasses profile
+filtering and does not prove that an installed rule runs. The published
+consumer configuration is exercised this way by integration tests.
 
 ## Release Acceptance
 

@@ -68,6 +68,7 @@ source-include = [
   "CHANGELOG.md",
   "DEVELOPMENT.md",
   "docs/**",
+  "examples/**",
   "scripts/**",
   "uv.lock",
 ]

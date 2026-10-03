@@ -1,0 +1,25 @@
+# https://foundata.com/en/guidelines/ansible-playbooks/#linting
+---
+profile: "production"
+strict: true
+
+enable_list:
+  - "jinja-template-extension"
+  - "loop-var-prefix"
+  - "foundata-condition-list"
+  - "foundata-handler-listen"
+  - "foundata-task-order"
+  - "foundata-file-mode"
+  - "foundata-debug-verbosity"
+  - "foundata-no-end-play"
+  - "foundata-task-name"
+
+# Add the collection component of the public prefix for collection roles.
+loop_var_prefix: "^__{role}_[a-z][a-z0-9_]*_item$"
+
+skip_list:
+  - "use-loop"
+
+exclude_paths:
+  - ".cache/"
+  - "changelogs/changelog.yaml"

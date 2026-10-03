@@ -60,6 +60,22 @@ Document which SHOULD-level recommendations the project enforces as errors.
 Check every expected enabled rule ID with
 `ansible-lint --list-rules --format brief` in the same environment and with the
 same configuration used for linting, and fail CI if any are absent.
+Listing proves discovery, not execution. Use known-invalid fixtures to verify
+the adopted rules actually report violations with that configuration.
+
+Tested consumer configurations are provided in
+[`examples/consumer/.ansible-lint`](examples/consumer/.ansible-lint) and
+[`examples/consumer/.yamllint`](examples/consumer/.yamllint). They explicitly
+enable stock `jinja-template-extension` and `loop-var-prefix` as well as the
+foundata rules. Tighten `loop_var_prefix` with the collection component of your
+role's public prefix where applicable. The baseline checks the private role
+prefix and purpose suffix; it cannot infer a collection's public interface.
+
+The YAML configuration accepts formatter output, enforces document starts and
+lowercase booleans, and prefers double quotes without forcing quotes on local
+identifiers or implicit expressions. Context-aware quote requirements remain
+review concerns. Adopting the example also adopts its SHOULD-level checks as
+errors. Keep changelog validation in a separate CI step.
 
 
 ## Formatting and Safety<a id="formatting-and-safety"></a>
