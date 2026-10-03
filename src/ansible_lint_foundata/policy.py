@@ -9,6 +9,7 @@ from jinja2 import Environment, TemplateSyntaxError, meta, nodes, pass_context
 from jinja2.runtime import Context
 
 CONDITION_KEYS = ("when", "changed_when", "failed_when")
+STOCK_TASK_BOUNDARIES = ("name", "block", "rescue", "always")
 _TASK_KEYS = (
     "name",
     "delegate_to",
@@ -48,7 +49,7 @@ def builtin_module_name(name: str) -> str | None:
 
 
 def ordered_task_keys(keys: Sequence[str], action: str) -> list[str]:
-    """Order documented keys, leaving unspecified keys in their original slots."""
+    """Extend stock boundaries, preserving unknown slots within the middle group."""
 
     def rank(key: str) -> int | None:
         if key == action or key == "local_action":
@@ -57,9 +58,14 @@ def ordered_task_keys(keys: Sequence[str], action: str) -> list[str]:
             key = "with_*"
         return _TASK_KEYS.index(key) if key in _TASK_KEYS else None
 
-    ranks = {key: position for key in keys if (position := rank(key)) is not None}
+    middle = [key for key in keys if key not in STOCK_TASK_BOUNDARIES]
+    ranks = {key: position for key in middle if (position := rank(key)) is not None}
     known = iter(sorted(ranks, key=ranks.__getitem__))
-    return [next(known) if key in ranks else key for key in keys]
+    return (
+        [key for key in keys if key == "name"]
+        + [next(known) if key in ranks else key for key in middle]
+        + [key for key in STOCK_TASK_BOUNDARIES[1:] if key in keys]
+    )
 
 
 def is_handler_topic(value: object) -> bool:

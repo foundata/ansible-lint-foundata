@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from itertools import permutations
+
 import pytest
+from ansiblelint.rules.key_order import get_property_sort_index
 
 from ansible_lint_foundata.policy import (
     absolute_mode,
@@ -124,6 +127,15 @@ def test_task_order_keeps_block_keywords_last() -> None:
         "when",
         "block",
     ]
+
+
+def test_extended_order_always_satisfies_stock_boundaries() -> None:
+    keys = ("name", "check_mode", "register", "when", "block", "rescue", "always")
+    for order in permutations(keys):
+        expected = ordered_task_keys(order, "block/always/rescue")
+        ranks = [get_property_sort_index(key) for key in expected]
+        assert ranks == sorted(ranks)
+        assert ordered_task_keys(expected, "block/always/rescue") == expected
 
 
 def test_task_order_handles_old_loop_syntax_and_local_actions() -> None:

@@ -285,7 +285,7 @@ def test_fixes_preserve_values_comments_and_reach_a_fixed_point(tmp_path: Path) 
         encoding="utf-8",
     )
     result = run_lint(tmp_path, "--fix", str(target))
-    assert result.returncode == RC.FIXED_VIOLATIONS, result.stdout + result.stderr
+    assert result.returncode == 2, result.stdout + result.stderr
     first = target.read_text(encoding="utf-8")
     task = YAML(typ="safe").load(first)[0]
     assert task["listen"] == ["restart example"]
@@ -296,14 +296,14 @@ def test_fixes_preserve_values_comments_and_reach_a_fixed_point(tmp_path: Path) 
         assert comment in first
     assert list(task) == [
         "name",
+        "listen",
+        "register",
         "ansible.builtin.debug",
         "when",
         "changed_when",
-        "register",
-        "listen",
     ]
     result = run_lint(tmp_path, "--fix", str(target))
-    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.returncode == 2, result.stdout + result.stderr
     assert target.read_text(encoding="utf-8") == first
 
 
@@ -432,11 +432,11 @@ def test_stock_rules_and_custom_fixes_coexist_under_production(tmp_path: Path) -
     target.write_text(
         """---
 - name: "Example"
-  register: result
   ansible.builtin.debug:
     msg: "Example"
     verbosity: 1
   changed_when: false
+  register: result
 """,
         encoding="utf-8",
     )
@@ -467,7 +467,7 @@ def test_loop_index_is_not_allowed_in_a_task_name(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("condition", ["true", "\n    - true"])
-def test_task_order_preserves_the_next_tasks_heading(
+def test_order_diagnostics_preserve_the_next_tasks_heading(
     tmp_path: Path, condition: str
 ) -> None:
     configure(tmp_path, "foundata-task-order", "foundata-condition-list")
@@ -483,18 +483,20 @@ def test_task_order_preserves_the_next_tasks_heading(
         encoding="utf-8",
     )
     result = run_lint(tmp_path, "--fix", str(target))
-    assert result.returncode == RC.FIXED_VIOLATIONS, result.stdout + result.stderr
+    assert result.returncode == 2, result.stdout + result.stderr
     fixed = target.read_text(encoding="utf-8")
-    assert fixed.index("# Condition comment") < fixed.index("register: result")
+    assert fixed.index("register: result") < fixed.index("# Condition comment")
     assert fixed.index("register: result") < fixed.index("# Heading for second task")
     assert '# Heading for second task\n- name: "Second"' in fixed
     assert "# Registration comment" in fixed
     result = run_lint(tmp_path, "--fix", str(target))
-    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.returncode == 2, result.stdout + result.stderr
     assert target.read_text(encoding="utf-8") == fixed
 
 
-def test_task_order_does_not_move_an_aliased_lists_comments(tmp_path: Path) -> None:
+def test_order_diagnostics_do_not_move_an_aliased_lists_comments(
+    tmp_path: Path,
+) -> None:
     configure(tmp_path, "foundata-task-order")
     target = tmp_path / "tasks/main.yml"
     target.write_text(
@@ -509,14 +511,14 @@ def test_task_order_does_not_move_an_aliased_lists_comments(tmp_path: Path) -> N
         encoding="utf-8",
     )
     result = run_lint(tmp_path, "--fix", str(target))
-    assert result.returncode == RC.FIXED_VIOLATIONS, result.stdout + result.stderr
+    assert result.returncode == 2, result.stdout + result.stderr
     fixed = target.read_text(encoding="utf-8")
     assert fixed.index("# Anchor comment") < fixed.index("# Heading for second task")
     assert fixed.index("# Heading for second task") < fixed.index('name: "Second"')
     data = YAML(typ="safe").load(fixed)
     assert data[0]["when"] == data[1]["when"] == [True]
     result = run_lint(tmp_path, "--fix", str(target))
-    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.returncode == 2, result.stdout + result.stderr
     assert target.read_text(encoding="utf-8") == fixed
 
 

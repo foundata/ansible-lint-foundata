@@ -66,7 +66,8 @@ same configuration used for linting, and fail CI if any are absent.
 
 Ansible Lint owns YAML formatting. This package does not restore blank lines
 removed by `--fix`, require a blank line at EOF, or replace its serializer.
-Fixes wrap scalar conditions/topics and reorder task keys. They do not rename
+Fixes wrap scalar conditions/topics. Extended task ordering is diagnostic-only;
+stock `key-order` owns its autofix. The extension does not rename
 handler topics, change permissions, reinterpret process exit codes, or change
 play termination behavior. Review every fix.
 

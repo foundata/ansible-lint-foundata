@@ -15,7 +15,7 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
 | ------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | foundata-condition-list  | MUST        | Task/block/handler `when`, `changed_when`, `failed_when` values must be lists.                                                          | Wrap strings/booleans only. |
 | foundata-handler-listen  | MUST        | Handlers must have nonempty lists of static lowercase topics; uppercase legacy aliases fail.                                            | Wrap a valid scalar topic; never rename. |
-| foundata-task-order      | SHOULD      | Documented task keys follow the guide's ordering; unspecified keys retain their slots.                                                  | Reorder ordinary mappings, not YAML merges. |
+| foundata-task-order      | SHOULD      | Extend stock ordering within the middle task keys; retain unknown keys' relative slots in that group.                                   | None: stock owns ordering autofix. |
 | foundata-file-mode       | Policy      | Literal permission modes in supported built-in file modules must be absolute symbolic assignments with a matching inline octal comment. | None: mode/comment disagreement needs review. |
 | foundata-debug-verbosity | MUST        | Debug tasks explicitly supply `verbosity`; zero is accepted for output intended for normal runs.                                        | None.   |
 | foundata-no-end-play     | Policy      | Reject `ansible.builtin.meta: end_play`.                                                                                                | None: `end_host` is not equivalent. |
@@ -32,7 +32,8 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
   Dynamic `include_tasks` handlers need topics on the include itself.
 - Ordering: module-parameter ordering is not implemented. Unknown task keys are
   not guessed into undocumented groups. Stock `key-order` remains responsible
-  for `name` first and block-related keys last.
+  for `name` first and `block`, `rescue`, `always` last. The extension reports
+  only additional ordering violations, not stock-only violations.
 - Permissions: check `assemble`, `blockinfile`, `copy`, `file`, `get_url`,
   `lineinfile`, `replace`, `template`, `unarchive` and `uri` from
   `ansible.builtin` and `ansible.legacy`, as well as normalized short names.
@@ -68,6 +69,28 @@ double-quote preference with the agreed quoted-quote exception, basic names,
 module FQCNs, explicit role loop-variable patterns and common command risks.
 Do not duplicate those rules here. One blank line between tasks is a guide
 preference, not an exact-placement rule. The formatter owns mechanical layout.
+
+### Compatible Task Ordering
+
+The extension refines, rather than replaces, stock
+[`key-order`](https://docs.ansible.com/projects/lint/rules/key-order/):
+
+1. Stock owns `name` first and the terminal `block`, `rescue`, `always` group.
+2. Within the remaining middle group, order documented keys as context/action,
+   arguments/variables/environment, conditions, loops, results, notifications,
+   and tags, following the guideline's detailed list.
+3. Leave unknown keys in their relative slots within that middle group. An
+   unknown key can never displace `name` or follow a block-related key.
+4. Do not extend play-level ordering or recursively sort module parameters.
+
+This alpha deliberately removes the previous task-order autofix. In Ansible
+Lint 26.9.0, stock's transform replays a key order captured before other fixes;
+it can undo an extension's transform while both claim success. A diagnostic-only
+extension leaves stock's fix intact and continues reporting any remaining
+extension violation. Repeated fix runs must be byte-stable, not alternate
+between ordering policies. Do not disable stock, monkey-patch its rules, or
+depend on diagnostic sort order to coordinate transforms. Combined autofix can
+return after an upstream composition mechanism is available and tested.
 
 ## Planned Checks
 
