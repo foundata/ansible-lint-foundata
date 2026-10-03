@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 
 from ansible_lint_foundata.expressions import nonboolean_condition
-from ansible_lint_foundata.policy import CONDITION_KEYS
+from ansible_lint_foundata.policy import CONDITION_KEYS, builtin_module_name
 from ansible_lint_foundata.rules import FoundataRule
 
 if TYPE_CHECKING:
@@ -27,10 +27,16 @@ class FoundataConditionBoolRule(FoundataRule):
     @override
     def matchtask(self, task: Task, file: Lintable | None = None) -> list[MatchError]:
         matches = []
-        for key in CONDITION_KEYS:
-            if key not in task.raw_task:
-                continue
-            value = task.raw_task[key]
+        values = {
+            key: task.raw_task[key] for key in CONDITION_KEYS if key in task.raw_task
+        }
+        action = task["action"]
+        if (
+            builtin_module_name(action["__ansible_module__"]) == "assert"
+            and "that" in action
+        ):
+            values["assert.that"] = action["that"]
+        for key, value in values.items():
             conditions = value if isinstance(value, list) else [value]
             for index, condition in enumerate(conditions, start=1):
                 if nonboolean_condition(condition):

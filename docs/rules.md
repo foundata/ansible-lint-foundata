@@ -32,7 +32,8 @@ adopt and document SHOULD-level rules enforced as CI errors.
 
 ### Boundaries
 
-- Conditions: cover `when`, `changed_when`, `failed_when` and `until`. Boolean
+- Conditions: cover `when`, `changed_when`, `failed_when` and `until`; the
+  boolean check also covers `assert.that`. Boolean
   checks reject literal nonbooleans and expressions whose branches are all
   known nonboolean. They do not evaluate plugins or infer runtime types.
   Neither rule splits `and`, rewrites

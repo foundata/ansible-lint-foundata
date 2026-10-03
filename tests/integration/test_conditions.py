@@ -51,3 +51,25 @@ def test_all_condition_contexts_and_no_inference(tmp_path: Path) -> None:
     before = target.read_bytes()
     assert run_lint(tmp_path, "--fix=all", str(target)).returncode == 2
     assert YAML(typ="safe").load(target.read_bytes()) == YAML(typ="safe").load(before)
+
+
+def test_assert_checks_boolean_results_in_alternate_argument_syntax(
+    tmp_path: Path,
+) -> None:
+    configure(tmp_path, "foundata-condition-bool")
+    target = tmp_path / "tasks/main.yml"
+    target.write_text(
+        """---
+- name: "Assertions"
+  action:
+    module: ansible.builtin.assert
+    that:
+      - "'ready'"
+      - enabled
+      - result is defined
+""",
+        encoding="utf-8",
+    )
+    matches = diagnostics(run_lint(tmp_path, "-f", "json", str(target)))
+    assert [m["check_name"] for m in matches] == ["foundata-condition-bool"]
+    assert "assert.that" in matches[0]["description"]
