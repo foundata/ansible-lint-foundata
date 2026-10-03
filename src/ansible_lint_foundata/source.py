@@ -54,11 +54,12 @@ def key_origin(mapping: CommentedMap, key: str) -> CommentedMap | None:
     return None
 
 
-def is_dynamic_handler_body(file: Lintable) -> bool:
-    """Recognize proven dynamic include edges in the linter's ancestry chain.
+def handler_file_context(file: Lintable) -> bool | None:
+    """Resolve literal include/import edges in the linter's ancestry chain.
 
-    Upstream can label a dynamic handler's body as handlers too. An unresolved
-    edge or a file also imported statically must not exempt actual handlers.
+    File-kind hints can lose the distinction at nested imports. A static
+    handler context takes precedence when the same parent also includes the
+    file dynamically. Unknown edges leave the upstream hint authoritative.
     """
     current = file
     visited: set[str] = set()
@@ -67,7 +68,8 @@ def is_dynamic_handler_body(file: Lintable) -> bool:
         parent = current.parent
         if parent.kind not in {"tasks", "handlers", "playbook"}:
             break
-        actions = set()
+        imports: list[bool] = []
+        included = False
         for task in task_in_list(parent.data, kind=parent.kind, file=parent):
             if task.error is not None:
                 continue
@@ -79,10 +81,15 @@ def is_dynamic_handler_body(file: Lintable) -> bool:
             ):
                 continue
             if (parent.path.parent / target).resolve() == current.path.resolve():
-                actions.add(module)
-        if actions == {"include_tasks"}:
-            return True
-        if not actions:
-            break
+                if module == "import_tasks":
+                    imports.append(task.kind == "handlers")
+                else:
+                    included = True
+        if not imports:
+            return False if included else None
+        if parent.kind == "playbook":
+            return any(imports)
         current = parent
-    return False
+    if current is not file and current.parent is None:
+        return current.kind == "handlers"
+    return None

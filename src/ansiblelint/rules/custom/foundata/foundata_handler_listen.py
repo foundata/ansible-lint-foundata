@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
+from ansiblelint.runner import Runner
+from ansiblelint.utils import task_in_list
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from ansible_lint_foundata.fixes import wrap_scalar_list
 from ansible_lint_foundata.policy import builtin_module_name, is_handler_topic
 from ansible_lint_foundata.rules import FoundataRule
-from ansible_lint_foundata.source import is_dynamic_handler_body
+from ansible_lint_foundata.source import handler_file_context
 from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
@@ -28,15 +30,72 @@ class FoundataHandlerListenRule(FoundataRule, TransformMixin):
     version_changed = "1.0.0"
     link = "https://foundata.com/en/guidelines/ansible-playbooks/#handlers"
 
+    @staticmethod
+    def _is_handler(task: Task, file: Lintable | None) -> bool:
+        if file is not None and file.kind != "playbook":
+            context = handler_file_context(file)
+            if context is not None:
+                return context
+        return task.kind == "handlers"
+
+    @override
+    def matchtasks(self, file: Lintable) -> list[MatchError]:
+        matches = super().matchtasks(file)
+        if (
+            file.kind not in {"handlers", "tasks", "playbook"}
+            or self._collection is None
+            or self.options is None
+        ):
+            return matches
+        # Upstream discovery does not descend into files classified as handlers.
+        # Reuse its path resolver and exclusions, but never render dynamic paths.
+        resolver = Runner(
+            rules=self._collection,
+            exclude_paths=self.options.exclude_paths,
+            project_dir=self.options.project_dir,
+        )
+        pending = [file]
+        visited = {file.path.resolve()}
+        while pending:
+            current = pending.pop()
+            for task in task_in_list(
+                current.data, kind=str(current.kind), file=current
+            ):
+                if task.error is not None or not self._is_handler(task, current):
+                    continue
+                action = task["action"]
+                target = action.get("file", action.get("_raw_params"))
+                if (
+                    builtin_module_name(action["__ansible_module__"]) != "import_tasks"
+                    or not isinstance(target, str)
+                    or any(marker in target for marker in ("{{", "{%"))
+                ):
+                    continue
+                for child in resolver.play_children(
+                    current,
+                    ("import_tasks", target),
+                    "handlers",
+                    str(current.path.parent),
+                ):
+                    path = child.path.resolve()
+                    if (
+                        path in visited
+                        or resolver.is_excluded(child)
+                        or not path.is_file()
+                    ):
+                        continue
+                    visited.add(path)
+                    matches.extend(super().matchtasks(child))
+                    pending.append(child)
+        return matches
+
     @override
     def matchtask(self, task: Task, file: Lintable | None = None) -> list[MatchError]:
         if (
-            task.kind != "handlers"
+            not self._is_handler(task, file)
             or builtin_module_name(task["action"]["__ansible_module__"])
             == "import_tasks"
         ):
-            return []
-        if file is not None and is_dynamic_handler_body(file):
             return []
         value = task.raw_task.get("listen")
         messages = []

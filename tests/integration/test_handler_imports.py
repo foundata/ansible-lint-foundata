@@ -102,3 +102,71 @@ def test_inline_dynamic_handler_body_and_static_import_contexts(
     assert all(
         item["location"]["path"].endswith("handlers/restart.yml") for item in matches
     )
+
+
+@pytest.mark.parametrize("suppression", ["", " # noqa: foundata-handler-listen"])
+def test_nested_handler_imports_preserve_suppression_and_fix_targets(
+    tmp_path: Path, suppression: str
+) -> None:
+    configure(tmp_path, "foundata-handler-listen")
+    (tmp_path / "handlers").mkdir()
+    (tmp_path / "handlers/main.yml").write_text(
+        '---\n- name: "Import sequence"\n'
+        '  ansible.builtin.import_tasks: "sequence.yml"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "handlers/sequence.yml").write_text(
+        '---\n- name: "Import handlers"\n'
+        '  ansible.builtin.import_tasks: "restart.yml"\n',
+        encoding="utf-8",
+    )
+    target = tmp_path / "handlers/restart.yml"
+    target.write_text(
+        f'---\n- name: "Restart example"{suppression}\n'
+        '  ansible.builtin.debug:\n    msg: "Restart"\n'
+        '  listen: "restart example" # Public topic\n',
+        encoding="utf-8",
+    )
+    matches = diagnostics(run_lint(tmp_path, "--format", "json", "handlers/main.yml"))
+    assert len(matches) == (0 if suppression else 1)
+    assert all(item["location"]["positions"]["begin"]["line"] == 2 for item in matches)
+    result = run_lint(tmp_path, "--fix=foundata-handler-listen", "handlers/main.yml")
+    assert result.returncode in (0, 8), result.stdout + result.stderr
+    assert "# Public topic" in target.read_text(encoding="utf-8")
+    assert ("listen:\n" in target.read_text(encoding="utf-8")) is not bool(suppression)
+    assert (
+        diagnostics(run_lint(tmp_path, "--format", "json", "handlers/main.yml")) == []
+    )
+
+
+def test_handler_import_cycle_terminates_and_respects_exclusions(
+    tmp_path: Path,
+) -> None:
+    configure(tmp_path, "foundata-handler-listen")
+    (tmp_path / "handlers").mkdir()
+    (tmp_path / "handlers/main.yml").write_text(
+        '---\n- name: "Import sequence"\n'
+        '  ansible.builtin.import_tasks: "sequence.yml"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "handlers/sequence.yml").write_text(
+        '---\n- name: "Import main"\n'
+        '  ansible.builtin.import_tasks: "main.yml"\n'
+        '- name: "Restart example"\n  ansible.builtin.debug:\n    msg: "Restart"\n',
+        encoding="utf-8",
+    )
+    matches = diagnostics(run_lint(tmp_path, "--format", "json", "handlers/main.yml"))
+    assert len(matches) == 2
+    assert (
+        diagnostics(
+            run_lint(
+                tmp_path,
+                "--exclude",
+                "handlers/sequence.yml",
+                "--format",
+                "json",
+                "handlers/main.yml",
+            )
+        )
+        == []
+    )
