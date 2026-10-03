@@ -135,9 +135,11 @@ def _analysis_plugin(context: Context, *args: object, **kwargs: object) -> None:
     """Prevent constant folding from executing filters or tests during analysis."""
 
 
-def template_names(value: str) -> set[str]:
+def template_names(
+    value: str, *, environment: Environment | None = None, strict: bool = False
+) -> set[str]:
     """Collect external references using Jinja's lexical scope analysis."""
-    environment = Environment(optimized=False)
+    environment = environment or Environment(optimized=False)
     try:
         template = environment.parse(value)
         # Meta analysis compiles but never renders. Context-dependent inert
@@ -148,6 +150,8 @@ def template_names(value: str) -> set[str]:
             environment.tests[test.name] = _analysis_plugin
         names = meta.find_undeclared_variables(template)
     except TemplateSyntaxError:
+        if strict:
+            raise
         # Syntax diagnostics belong to Ansible Lint's existing Jinja rule.
         return set()
     if "vars" in names:

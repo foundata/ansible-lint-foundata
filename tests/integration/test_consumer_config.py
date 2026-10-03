@@ -24,6 +24,7 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
     install_config(tmp_path)
     (tmp_path / "tasks").mkdir()
     (tmp_path / "handlers").mkdir()
+    (tmp_path / "templates").mkdir()
     (tmp_path / "tasks/main.yml").write_text(
         """---
 - name: "File"
@@ -35,11 +36,19 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
 
 - name: "Debug {{ item }}"
   ansible.builtin.debug:
-    msg: "Example"
+    msg: "{{ example | default('Example') }}"
   loop: []
 
 - name: "Stop"
   ansible.builtin.meta: "end_play"
+
+- name: "Command"
+  ansible.builtin.command:
+    argv:
+      - "/usr/bin/example"
+      - "{{ example | ansible.builtin.quote }}"
+  changed_when:
+    - false
 """,
         encoding="utf-8",
     )
@@ -53,8 +62,16 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
 """,
         encoding="utf-8",
     )
+    (tmp_path / "templates/example.j2").write_text(
+        "{{ inventory_hostname }}\n", encoding="utf-8"
+    )
     result = run_lint(
-        tmp_path, "--format", "json", "tasks/main.yml", "handlers/main.yml"
+        tmp_path,
+        "--format",
+        "json",
+        "tasks/main.yml",
+        "handlers/main.yml",
+        "templates/example.j2",
     )
     custom = {
         item["check_name"]

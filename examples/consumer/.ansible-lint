@@ -13,6 +13,9 @@ enable_list:
   - "foundata-debug-verbosity"
   - "foundata-no-end-play"
   - "foundata-task-name"
+  - "foundata-jinja-fqcn"
+  - "foundata-template-inputs"
+  - "foundata-command-argv"
 
 # Add the collection component of the public prefix for collection roles.
 loop_var_prefix: "^__{role}_[a-z][a-z0-9_]*_item$"

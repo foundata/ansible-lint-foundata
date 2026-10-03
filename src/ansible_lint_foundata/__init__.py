@@ -8,4 +8,7 @@ RULE_IDS = (
     "foundata-debug-verbosity",
     "foundata-no-end-play",
     "foundata-task-name",
+    "foundata-jinja-fqcn",
+    "foundata-template-inputs",
+    "foundata-command-argv",
 )

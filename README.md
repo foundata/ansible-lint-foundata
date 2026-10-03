@@ -41,6 +41,9 @@ enable_list:
   - "foundata-debug-verbosity"
   - "foundata-no-end-play"
   - "foundata-task-name"
+  - "foundata-jinja-fqcn"
+  - "foundata-template-inputs"
+  - "foundata-command-argv"
 ```
 
 Then run the usual commands:
@@ -86,6 +89,9 @@ Fixes wrap scalar conditions/topics. Extended task ordering is diagnostic-only;
 stock `key-order` owns its autofix. The extension does not rename
 handler topics, change permissions, reinterpret process exit codes, or change
 play termination behavior. Review every fix.
+
+See the [rule contract](docs/rules.md) for exact coverage, remaining review
+requirements and proposed guideline revisions.
 
 Generated `changelogs/changelog.yaml` should be excluded from Ansible Lint and
 validated separately with `antsibull-changelog lint-changelog-yaml`; validate
