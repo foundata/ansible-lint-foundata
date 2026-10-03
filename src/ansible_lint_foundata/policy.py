@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
+from typing import override
 
 from jinja2 import Environment, TemplateSyntaxError, meta, nodes, pass_context
+from jinja2.compiler import Frame
 from jinja2.runtime import Context
 
 CONDITION_KEYS = ("when", "changed_when", "failed_when", "until")
@@ -163,6 +165,38 @@ def _analysis_plugin(context: Context, *args: object, **kwargs: object) -> None:
     """Prevent constant folding from executing filters or tests during analysis."""
 
 
+class _ReferenceTracker(meta.TrackingCodeGenerator):
+    """Associate individual reads with the compiler's lexical bindings."""
+
+    def __init__(self, environment: Environment) -> None:
+        super().__init__(environment)
+        self.external_reads: set[int] = set()
+
+    @override
+    def visit_Name(self, node: nodes.Name, frame: Frame) -> None:
+        reference = frame.symbols.ref(node.name)
+        binding = frame.symbols.find_load(reference)
+        if (
+            node.ctx == "load"
+            and binding == ("resolve", node.name)
+            and node.name not in frame.symbols.stores
+            and node.name not in self.environment.globals
+        ):
+            self.external_reads.add(id(node))
+        super().visit_Name(node, frame)
+
+
+def external_name_nodes(template: nodes.Template, environment: Environment) -> set[int]:
+    """Identify unshadowed reads without rendering or loading plugins."""
+    for node in template.find_all(nodes.Filter):
+        environment.filters[node.name] = _analysis_plugin
+    for test in template.find_all(nodes.Test):
+        environment.tests[test.name] = _analysis_plugin
+    tracker = _ReferenceTracker(environment)
+    tracker.visit(template)
+    return tracker.external_reads
+
+
 def template_names(
     value: str, *, environment: Environment | None = None, strict: bool = False
 ) -> set[str]:
@@ -177,6 +211,7 @@ def template_names(
         for test in template.find_all(nodes.Test):
             environment.tests[test.name] = _analysis_plugin
         names = meta.find_undeclared_variables(template)
+        external = external_name_nodes(template, environment)
     except TemplateSyntaxError:
         if strict:
             raise
@@ -187,6 +222,7 @@ def template_names(
             if (
                 isinstance(access.node, nodes.Name)
                 and access.node.name == "vars"
+                and id(access.node) in external
                 and isinstance(access.arg, nodes.Const)
                 and isinstance(access.arg.value, str)
             ):
@@ -195,6 +231,7 @@ def template_names(
         if (
             isinstance(call.node, nodes.Name)
             and call.node.name in names & {"lookup", "query", "q"}
+            and id(call.node) in external
             and call.args
             and isinstance(call.args[0], nodes.Const)
             and call.args[0].value

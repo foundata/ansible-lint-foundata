@@ -38,6 +38,21 @@ from ansible_lint_foundata.facts import injected_fact_references
             set(),
         ),
         ("{{ broken", False, set()),
+        (
+            "{{ hostvars.target.ansible_distribution }}{% macro local(hostvars) %}{{ hostvars.target.ansible_os_family }}{% endmacro %}",
+            False,
+            {"ansible_distribution"},
+        ),
+        (
+            "{{ vars['ansible_distribution'] }}{% for vars in values %}{{ vars['ansible_os_family'] }}{% endfor %}",
+            False,
+            {"ansible_distribution"},
+        ),
+        (
+            "{{ lookup('vars', 'ansible_distribution') }}{% macro local(lookup) %}{{ lookup('vars', 'ansible_os_family') }}{% endmacro %}",
+            False,
+            {"ansible_distribution"},
+        ),
     ],
 )
 def test_alias_references(value: str, implicit: bool, expected: set[str]) -> None:

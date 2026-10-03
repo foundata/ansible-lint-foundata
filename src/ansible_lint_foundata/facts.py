@@ -2,7 +2,7 @@
 
 from jinja2 import Environment, TemplateSyntaxError, nodes
 
-from ansible_lint_foundata.policy import template_names
+from ansible_lint_foundata.policy import external_name_nodes, template_names
 
 # Intentionally explicit: ansible_* also contains connection and magic variables.
 FACT_KEYS = frozenset(
@@ -74,7 +74,9 @@ def injected_fact_references(value: str, *, implicit: bool = False) -> set[str]:
     if "hostvars" not in names:
         return found
     try:
-        template = Environment(optimized=False).parse(source)
+        environment = Environment(optimized=False)
+        template = environment.parse(source)
+        external = external_name_nodes(template, environment)
     except TemplateSyntaxError:
         return found
     for node in template.find_all((nodes.Getattr, nodes.Getitem)):
@@ -85,6 +87,7 @@ def injected_fact_references(value: str, *, implicit: bool = False) -> set[str]:
             not isinstance(container, nodes.Getitem | nodes.Getattr)
             or not isinstance(container.node, nodes.Name)
             or container.node.name != "hostvars"
+            or id(container.node) not in external
         ):
             continue
         key = (
