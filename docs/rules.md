@@ -32,9 +32,12 @@ a SHOULD-level rule as a CI error is an explicit project policy decision.
   for `name` first and block-related keys last.
 - Permissions: check `assemble`, `blockinfile`, `copy`, `file`, `get_url`,
   `lineinfile`, `replace`, `template`, `unarchive` and `uri` from
-  `ansible.builtin`. Check explicit module mappings and `args` mappings. Dynamic
-  modes and their variable definitions require review and are not statically
-  evaluated. Put the octal comment at the literal variable definition, not at
+  `ansible.builtin` and `ansible.legacy`, as well as normalized short names.
+  Check explicit module, `action`, `local_action` and `args` mappings. YAML
+  merges use the defining mapping's comment and source line, including nested
+  merges and local overrides. Other collections are not matched by basename.
+  Dynamic modes and their variable definitions require review and are not
+  statically evaluated. Put the octal comment at the literal definition, not at
   each use. Other collections and `module_defaults` are not yet covered.
   `preserve` is not an absolute mode and is reported. The guide permits a
   task-local `# noqa: foundata-file-mode` for artifact-staging copies that must

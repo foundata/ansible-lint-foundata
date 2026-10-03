@@ -37,6 +37,15 @@ _MODE_CLAUSE = re.compile(r"([ugoa]+)=([rwxst]*)")
 _OCTAL_COMMENT = re.compile(r"#\s*([0-7]{4})\b")
 
 
+def builtin_module_name(name: str) -> str | None:
+    """Identify built-in actions without stripping third-party namespaces."""
+    for prefix in ("ansible.builtin.", "ansible.legacy."):
+        if name.startswith(prefix):
+            name = name.removeprefix(prefix)
+            break
+    return name if "." not in name else None
+
+
 def ordered_task_keys(keys: Sequence[str], action: str) -> list[str]:
     """Order documented keys, leaving unspecified keys in their original slots."""
 

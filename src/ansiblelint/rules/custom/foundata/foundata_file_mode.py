@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, override
 
 from ruamel.yaml.comments import CommentedMap
 
-from ansible_lint_foundata.policy import file_mode_message
-from ansible_lint_foundata.source import source_task
+from ansible_lint_foundata.policy import builtin_module_name, file_mode_message
+from ansible_lint_foundata.source import key_origin, source_task
 from ansiblelint.rules import AnsibleLintRule
 
 if TYPE_CHECKING:
@@ -43,18 +43,21 @@ class FoundataFileModeRule(AnsibleLintRule):
 
     @override
     def matchtask(self, task: Task, file: Lintable | None = None) -> list[MatchError]:
-        module = task["action"]["__ansible_module__"]
+        module = builtin_module_name(task["action"]["__ansible_module__"])
         if not file or module not in _MODULES:
             return []
         original = source_task(file, task)
         if original is None:
             return []
         results = []
-        for key in (task.action, "args"):
+        for key in dict.fromkeys((task.action, "action", "local_action", "args")):
             parameters = original.get(key)
-            if not isinstance(parameters, CommentedMap) or "mode" not in parameters:
+            if not isinstance(parameters, CommentedMap):
                 continue
-            comment_tokens = parameters.ca.items.get("mode")
+            origin = key_origin(parameters, "mode")
+            if origin is None:
+                continue
+            comment_tokens = origin.ca.items.get("mode")
             comment = (
                 comment_tokens[2].value.splitlines()[0]
                 if comment_tokens and comment_tokens[2]
@@ -67,7 +70,7 @@ class FoundataFileModeRule(AnsibleLintRule):
                 self.create_matcherror(
                     message=message,
                     filename=file,
-                    lineno=parameters.lc.key("mode")[0] + 1,
+                    lineno=origin.lc.key("mode")[0] + 1,
                 )
             )
         return results

@@ -4,10 +4,27 @@ import pytest
 
 from ansible_lint_foundata.policy import (
     absolute_mode,
+    builtin_module_name,
     mode_comment_matches,
     ordered_task_keys,
     template_names,
 )
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("file", "file"),
+        ("ansible.builtin.file", "file"),
+        ("ansible.legacy.file", "file"),
+        ("other.collection.file", None),
+        ("ansible.builtin.other.file", None),
+    ],
+)
+def test_builtin_namespaces_do_not_capture_other_collections(
+    name: str, expected: str | None
+) -> None:
+    assert builtin_module_name(name) == expected
 
 
 @pytest.mark.parametrize(

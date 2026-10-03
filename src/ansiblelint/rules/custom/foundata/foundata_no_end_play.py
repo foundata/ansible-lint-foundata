@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
+from ansible_lint_foundata.policy import builtin_module_name
 from ansiblelint.rules import AnsibleLintRule
 
 if TYPE_CHECKING:
@@ -27,6 +28,6 @@ class FoundataNoEndPlayRule(AnsibleLintRule):
     def matchtask(self, task: Task, file: Lintable | None = None) -> bool:
         action = task["action"]
         return bool(
-            action["__ansible_module__"] == "meta"
+            builtin_module_name(action["__ansible_module__"]) == "meta"
             and action.get("_raw_params") == "end_play"
         )

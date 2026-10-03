@@ -90,7 +90,7 @@ def test_handler_diagnostics_and_fix_eligibility(
     assert data == expected
 
 
-@pytest.mark.parametrize("placement", ["module", "args"])
+@pytest.mark.parametrize("placement", ["module", "args", "action", "local_action"])
 @pytest.mark.parametrize(
     ("mode", "message"),
     [
@@ -117,7 +117,11 @@ def test_handler_diagnostics_and_fix_eligibility(
 def test_file_mode_diagnostics_and_source_locations(
     tmp_path: Path, placement: str, mode: str, message: str | None
 ) -> None:
-    source = '- name: "File"\n  ansible.builtin.file:\n    path: "/tmp/example"\n'
+    source = '- name: "File"\n'
+    if placement in ("action", "local_action"):
+        source += f"  {placement}:\n    module: ansible.builtin.file\n"
+    else:
+        source += '  ansible.builtin.file:\n    path: "/tmp/example"\n'
     if placement == "args":
         source += "  args:\n"
     mode_line = len(source.splitlines()) + 1

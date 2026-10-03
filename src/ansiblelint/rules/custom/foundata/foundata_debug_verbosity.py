@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
+from ansible_lint_foundata.policy import builtin_module_name
 from ansiblelint.rules import AnsibleLintRule
 
 if TYPE_CHECKING:
@@ -24,4 +25,7 @@ class FoundataDebugVerbosityRule(AnsibleLintRule):
     @override
     def matchtask(self, task: Task, file: Lintable | None = None) -> bool:
         action = task["action"]
-        return action["__ansible_module__"] == "debug" and "verbosity" not in action
+        return (
+            builtin_module_name(action["__ansible_module__"]) == "debug"
+            and "verbosity" not in action
+        )
