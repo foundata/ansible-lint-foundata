@@ -5,10 +5,12 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
+from ansiblelint.utils import task_in_list
 from ansiblelint.yaml_utils import get_path_to_task
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
+from ansible_lint_foundata.policy import builtin_module_name
 from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
@@ -50,3 +52,37 @@ def key_origin(mapping: CommentedMap, key: str) -> CommentedMap | None:
             if isinstance(merged, CommentedMap):
                 pending.append(merged)
     return None
+
+
+def is_dynamic_handler_body(file: Lintable) -> bool:
+    """Recognize proven dynamic include edges in the linter's ancestry chain.
+
+    Upstream can label a dynamic handler's body as handlers too. An unresolved
+    edge or a file also imported statically must not exempt actual handlers.
+    """
+    current = file
+    visited: set[str] = set()
+    while current.parent is not None and str(current.path) not in visited:
+        visited.add(str(current.path))
+        parent = current.parent
+        if parent.kind not in {"tasks", "handlers", "playbook"}:
+            break
+        actions = set()
+        for task in task_in_list(parent.data, kind=parent.kind, file=parent):
+            if task.error is not None:
+                continue
+            action = task["action"]
+            module = builtin_module_name(action["__ansible_module__"])
+            target = action.get("file", action.get("_raw_params"))
+            if module not in {"include_tasks", "import_tasks"} or not isinstance(
+                target, str
+            ):
+                continue
+            if (parent.path.parent / target).resolve() == current.path.resolve():
+                actions.add(module)
+        if actions == {"include_tasks"}:
+            return True
+        if not actions:
+            break
+        current = parent
+    return False

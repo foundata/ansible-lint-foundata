@@ -9,6 +9,7 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ansible_lint_foundata.fixes import wrap_scalar_list
 from ansible_lint_foundata.policy import builtin_module_name, is_handler_topic
 from ansible_lint_foundata.rules import FoundataRule
+from ansible_lint_foundata.source import is_dynamic_handler_body
 from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
@@ -34,6 +35,8 @@ class FoundataHandlerListenRule(FoundataRule, TransformMixin):
             or builtin_module_name(task["action"]["__ansible_module__"])
             == "import_tasks"
         ):
+            return []
+        if file is not None and is_dynamic_handler_body(file):
             return []
         value = task.raw_task.get("listen")
         messages = []
