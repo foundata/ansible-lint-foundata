@@ -5,14 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 
 from ansible_lint_foundata.policy import builtin_module_name
-from ansiblelint.rules import AnsibleLintRule
+from ansible_lint_foundata.rules import FoundataRule
 
 if TYPE_CHECKING:
     from ansiblelint.file_utils import Lintable
     from ansiblelint.utils import Task
 
 
-class FoundataNoEndPlayRule(AnsibleLintRule):
+class FoundataNoEndPlayRule(FoundataRule):
     """Do not terminate all hosts with meta: end_play."""
 
     id = "foundata-no-end-play"

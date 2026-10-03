@@ -8,7 +8,8 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from ansible_lint_foundata.fixes import wrap_scalar_list
 from ansible_lint_foundata.policy import builtin_module_name, is_handler_topic
-from ansiblelint.rules import AnsibleLintRule, TransformMixin
+from ansible_lint_foundata.rules import FoundataRule
+from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
     from ansiblelint.errors import MatchError
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from ansiblelint.utils import Task
 
 
-class FoundataHandlerListenRule(AnsibleLintRule, TransformMixin):
+class FoundataHandlerListenRule(FoundataRule, TransformMixin):
     """Give handlers explicit lowercase listen topics in list form."""
 
     id = "foundata-handler-listen"

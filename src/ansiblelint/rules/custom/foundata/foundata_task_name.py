@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, override
 
 from ansible_lint_foundata.policy import template_names
-from ansiblelint.rules import AnsibleLintRule
+from ansible_lint_foundata.rules import FoundataRule
 
 if TYPE_CHECKING:
     from ansiblelint.errors import MatchError
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from ansiblelint.utils import Task
 
 
-class FoundataTaskNameRule(AnsibleLintRule):
+class FoundataTaskNameRule(FoundataRule):
     """Keep play names static and loop variables out of task names."""
 
     id = "foundata-task-name"

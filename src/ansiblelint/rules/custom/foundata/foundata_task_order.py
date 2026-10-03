@@ -8,7 +8,8 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from ansible_lint_foundata.fixes import reorder_task
 from ansible_lint_foundata.policy import ordered_task_keys
-from ansiblelint.rules import AnsibleLintRule, TransformMixin
+from ansible_lint_foundata.rules import FoundataRule
+from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
     from ansiblelint.errors import MatchError
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from ansiblelint.utils import Task
 
 
-class FoundataTaskOrderRule(AnsibleLintRule, TransformMixin):
+class FoundataTaskOrderRule(FoundataRule, TransformMixin):
     """Order task keys by execution context, conditions and results."""
 
     id = "foundata-task-order"

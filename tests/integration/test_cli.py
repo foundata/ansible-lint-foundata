@@ -240,6 +240,25 @@ def test_rule_findings(
     assert len([item for item in matches if item["check_name"] == rule_id]) == count, (
         matches
     )
+    for item in matches:
+        if item["check_name"] == rule_id:
+            assert item["url"].startswith(
+                "https://foundata.com/en/guidelines/ansible-playbooks/#"
+            )
+
+
+def test_sarif_links_to_the_guideline(tmp_path: Path) -> None:
+    configure(tmp_path, "foundata-debug-verbosity")
+    (tmp_path / "tasks/main.yml").write_text(
+        '- name: "Example"\n  ansible.builtin.debug:\n    msg: "Example"\n',
+        encoding="utf-8",
+    )
+    result = run_lint(tmp_path, "--format", "sarif", "tasks/main.yml")
+    assert result.returncode == 2, result.stdout + result.stderr
+    rules = json.loads(result.stdout)["runs"][0]["tool"]["driver"]["rules"]
+    assert rules[0]["helpUri"] == (
+        "https://foundata.com/en/guidelines/ansible-playbooks/#misc"
+    )
 
 
 def test_fixes_preserve_values_comments_and_reach_a_fixed_point(tmp_path: Path) -> None:

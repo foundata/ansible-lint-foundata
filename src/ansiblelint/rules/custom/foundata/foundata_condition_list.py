@@ -11,7 +11,8 @@ from ruamel.yaml.scalarbool import ScalarBoolean
 
 from ansible_lint_foundata.fixes import wrap_scalar_list
 from ansible_lint_foundata.policy import CONDITION_KEYS
-from ansiblelint.rules import AnsibleLintRule, TransformMixin
+from ansible_lint_foundata.rules import FoundataRule
+from ansiblelint.rules import TransformMixin
 
 if TYPE_CHECKING:
     from ansiblelint.errors import MatchError
@@ -26,7 +27,7 @@ class ConditionKey(RuleMatchTransformMeta):
     key: str
 
 
-class FoundataConditionListRule(AnsibleLintRule, TransformMixin):
+class FoundataConditionListRule(FoundataRule, TransformMixin):
     """Use lists for when, changed_when and failed_when."""
 
     id = "foundata-condition-list"

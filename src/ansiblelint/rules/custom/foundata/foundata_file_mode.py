@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, override
 from ruamel.yaml.comments import CommentedMap
 
 from ansible_lint_foundata.policy import builtin_module_name, file_mode_message
+from ansible_lint_foundata.rules import FoundataRule
 from ansible_lint_foundata.source import key_origin, source_task
-from ansiblelint.rules import AnsibleLintRule
 
 if TYPE_CHECKING:
     from ansiblelint.errors import MatchError
@@ -31,7 +31,7 @@ _MODULES = {
 }
 
 
-class FoundataFileModeRule(AnsibleLintRule):
+class FoundataFileModeRule(FoundataRule):
     """Use complete symbolic modes with a matching inline octal comment."""
 
     id = "foundata-file-mode"
