@@ -23,7 +23,7 @@ class FoundataStringQuotesRule(FoundataRule):
     tags = ["opt-in", "formatting"]
     severity = "LOW"
     version_changed = "1.0.0"
-    link = "https://foundata.com/en/guidelines/ansible-playbooks/#yaml"
+    link = "https://foundata.com/en/guidelines/ansible-playbooks/#quoting"
 
     @override
     def matchtask(self, task: Task, file: Lintable | None = None) -> list[MatchError]:
