@@ -175,6 +175,7 @@ Jinja inputs under `tmp_path`, without modifying users' collections.
   [`test_consumer_config.py`](./tests/integration/test_consumer_config.py) tests
   the published configuration against known-invalid inputs for every adopted
   rule.
+- Keep the verification command's bundled examples current when adding rules.
 - Keep tests isolated from user configuration and use pytest's temporary
   directories. Do not make fixtures pass by rewriting their expected inputs.
 

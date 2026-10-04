@@ -137,14 +137,17 @@ and remaining review requirements.
 ## Continuous integration<a id="continuous-integration"></a>
 
 CI that requires these checks must install the extension and verify both
-discovery and execution:
+discovery and execution before linting, in the same environment:
 
-1. Run `ansible-lint --list-rules --format brief` in the lint environment using
-   the project's configuration. Fail if any enabled custom rule ID is absent.
-2. Run known-invalid fixtures to verify that every adopted rule reports its
-   expected violation. Listing bypasses profile filtering and does not prove
-   execution.
-3. Lint the project with the same configuration and environment.
+```sh
+ansible-lint-foundata verify --project-dir . && ansible-lint --strict
+```
+
+`verify` checks the explicitly enabled foundata rule IDs against bundled invalid
+examples. It runs offline without modifying project files or executing
+playbooks. A failed check exits nonzero. This verifies rule activation, not
+project coverage. Use `--config-file PATH` for a nonstandard config path
+relative to the project.
 
 Without this package, the tested Ansible Lint version continues to run stock
 checks even if custom IDs remain in `enable_list`. That fallback is for optional

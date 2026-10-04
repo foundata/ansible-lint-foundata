@@ -9,7 +9,10 @@ and the project adheres to
 
 ## [Unreleased]
 
-- Nothing worth mentioning right now.
+### Added
+
+- Optional `ansible-lint-foundata verify` command to check configured rule
+  discovery and execution before linting.
 
 
 ## [1.0.0] - 2026-10-04

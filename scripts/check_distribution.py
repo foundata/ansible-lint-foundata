@@ -133,7 +133,15 @@ def main() -> None:
             encoding="utf-8",
         )
         run(str(python), "-m", "ansiblelint", "--offline", "tasks/main.yml", cwd=work)
+        run(
+            str(environment / "bin" / "ansible-lint-foundata"),
+            "verify",
+            "--project-dir",
+            str(work),
+            cwd=work,
+        )
         run("uv", "pip", "uninstall", "--python", str(python), "ansible-lint-foundata")
+        assert not (environment / "bin" / "ansible-lint-foundata").exists()
         run(str(python), "-m", "ansiblelint", "--offline", "tasks/main.yml", cwd=work)
         listing = run(
             str(python),

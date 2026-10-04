@@ -43,6 +43,9 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 
+[project.scripts]
+ansible-lint-foundata = "ansible_lint_foundata.cli:main"
+
 [project.urls]
 Homepage = "https://foundata.com/en/projects/ansible-lint-foundata/"
 Documentation = "https://foundata.com/en/projects/ansible-lint-foundata/#doc"
