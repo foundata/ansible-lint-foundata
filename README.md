@@ -199,10 +199,18 @@ an
 
 ### Trademarks<a id="trademarks"></a>
 
+Third-party trademarks used in this repository:
+
+- Ansible® and Red Hat® are trademarks of Red Hat, LLC, registered in the United
+  States and other countries.
+
+Their use here is purely descriptive and does not imply any affiliation with or
+endorsement by the trademark holders.
+
 Own and licensed trademarks used in this repository:
 
 - foundata® is a trademark of [IPAM GmbH](https://ipam-services.com/),
-  registered in Germany, the European Union, licensed to
+  registered in Germany and the European Union, licensed to
   [foundata GmbH](https://foundata.com/).
 
 
