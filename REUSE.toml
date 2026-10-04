@@ -1,6 +1,6 @@
 version = 1
 SPDX-PackageName = "Ansible Lint (foundata extension)"
-SPDX-PackageDownloadLocation = "https://github.com/foundata/ansible-lint-foundata"
+SPDX-PackageDownloadLocation = "https://foundata.com/en/projects/ansible-lint-foundata/#releases"
 SPDX-PackageSupplier = "foundata GmbH (https://foundata.com)"
 SPDX-PackageComment = """
 This project may include calls to Application Programming Interfaces
