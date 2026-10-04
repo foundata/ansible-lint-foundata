@@ -1,14 +1,18 @@
 # Contributing
 
-Report bugs and suggest rule improvements through the project's
-[issue trackers](https://foundata.com/en/projects/ansible-lint-foundata/#issues).
-Use one of the
-[public repositories](https://foundata.com/en/projects/ansible-lint-foundata/#source)
-to submit a pull request (PR) or merge request (MR).
+Development takes place on our internal repository hosting platform. You can
+report issues and submit changes through any of our public repositories on
+platforms such as GitHub, GitLab or Codeberg. We coordinate the work internally
+and follow up on the platform where you contributed.
 
-Report suspected security vulnerabilities privately through
-[GitHub's security reporting feature](https://github.com/foundata/ansible-lint-foundata/security/advisories/new),
-not in a public issue.
+Choose an
+[issue tracker](https://foundata.com/en/projects/ansible-lint-foundata/#issues)
+or
+[public repository](https://foundata.com/en/projects/ansible-lint-foundata/#source)
+on the project page.
+
+Report suspected security vulnerabilities privately using the channels in
+[SECURITY.md](./SECURITY.md#reporting), not in a public issue.
 
 ## Table of contents
 
@@ -18,7 +22,17 @@ not in a public issue.
 
 ## Issues<a id="issues"></a>
 
-Search the issue tracker you use before opening a report. For bugs, include:
+If you spot a problem, have an idea or want to request a feature, use the issue
+tracker where this project's repository is hosted, such as GitHub, GitLab or
+Codeberg. Search the existing issues there before opening a new one.
+
+You only need to report an issue once, on one platform. If you know of a related
+issue on another platform, include its full URL so we can connect the reports.
+
+We don't assign issues automatically. Leave a comment if you'd like to work on
+an issue or have already started. You can also ask us to assign it to you.
+
+For bugs, include:
 
 - The extension, Ansible Lint and Python versions, and how you installed them.
 - A minimal YAML or Jinja example and the relevant `.ansible-lint` and
