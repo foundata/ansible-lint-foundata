@@ -38,20 +38,19 @@ This optional extension uses the stock
 Requires Python 3.12 or later and Ansible Lint 26.9.0 or later. Install the
 extension into the **same environment** as `ansible-lint`.
 
-From your Ansible project, create a lint environment and install from a local
-checkout of this extension. Replace the source path below with your checkout's
-location:
+From your Ansible project, create a lint environment and install the extension
+from PyPI:
 
 ```sh
 uv venv --python 3.12 .venv
-uv pip install --python .venv/bin/python /path/to/ansible-lint-foundata
+uv pip install --python .venv/bin/python ansible-lint-foundata
 . .venv/bin/activate
 ```
 
 If you already have a lint environment, use its Python path in the install
-command and activate that environment instead. You can pass a built wheel in
-place of the source directory. Runtime dependencies, including Ansible Lint, are
-installed with the extension.
+command and activate that environment instead. To install from source or test a
+release artifact, replace the package name with a checkout or wheel path.
+Runtime dependencies, including Ansible Lint, are installed with the extension.
 
 Use a regular, non-editable installation. Ansible Lint discovers the installed
 rules automatically; you do not need a local rule directory or `sys.path`

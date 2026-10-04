@@ -67,7 +67,8 @@ limits. Describe any proposed guideline change alongside the linting change.
 5. Explain the behavior change and the checks you ran in your submission.
    Include full URLs for related issues, when applicable.
 
-Do not add changelog entries before the first public 1.0.0 release.
+Document notable user-facing changes under `Unreleased` in
+[`CHANGELOG.md`](./CHANGELOG.md).
 
 Working on a branch in your own fork lets you make changes without affecting the
 original project until we merge them. For help with forks, branches and

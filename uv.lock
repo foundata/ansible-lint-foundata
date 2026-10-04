@@ -68,7 +68,7 @@ wheels = [
 
 [[package]]
 name = "ansible-lint-foundata"
-version = "1.0.0a1"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "ansible-lint" },

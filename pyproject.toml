@@ -2,7 +2,7 @@
 
 [project]
 name = "ansible-lint-foundata"
-version = "1.0.0a1"
+version = "1.0.0"
 description = "foundata's additional rules and fixes for Ansible Lint"
 keywords = [
   "ansible",
@@ -29,7 +29,7 @@ dependencies = [
 # https://pypi.org/classifiers/
 # Add audience, topic and tested Python versions as those facts are established.
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
 
   # Indication for whom the project is for
   "Environment :: Console",
@@ -40,6 +40,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
 [project.urls]
