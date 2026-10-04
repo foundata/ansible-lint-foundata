@@ -9,6 +9,11 @@ and the project adheres to
 
 ## [Unreleased]
 
+- Nothing worth mentioning right now.
+
+
+## [1.1.0] - 2026-10-04
+
 ### Added
 
 - Optional `ansible-lint-foundata verify` command to check configured rule
@@ -30,5 +35,6 @@ and the project adheres to
 - Tested consumer configurations, rule coverage and exception documentation, and
   support for Python 3.12, 3.13 and 3.14 and Ansible Lint 26.9.0 or later.
 
-[unreleased]: https://github.com/foundata/ansible-lint-foundata/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/foundata/ansible-lint-foundata/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/foundata/ansible-lint-foundata/releases/tag/v1.1.0
 [1.0.0]: https://github.com/foundata/ansible-lint-foundata/releases/tag/v1.0.0
