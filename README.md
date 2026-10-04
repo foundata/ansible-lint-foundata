@@ -22,7 +22,12 @@ This optional extension uses the stock
 ## Table of contents
 
 - [Installation](#installation)
+- [Configuration](#configuration)
+- [Running checks](#running-checks)
 - [Formatting and safety](#formatting-safety)
+- [Continuous integration](#continuous-integration)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
 - [Licensing, copyright](#licensing-copyright)
   - [Trademarks](#trademarks)
 - [Author information](#author-information)
@@ -30,19 +35,35 @@ This optional extension uses the stock
 
 ## Installation<a id="installation"></a>
 
-Install into the **same environment** as `ansible-lint`. For local development:
+Requires Python 3.12 or later and Ansible Lint 26.9.0 or later. Install the
+extension into the **same environment** as `ansible-lint`.
+
+From your Ansible project, create a lint environment and install from a local
+checkout of this extension. Replace the source path below with your checkout's
+location:
 
 ```sh
-uv sync --locked --no-editable
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python /path/to/ansible-lint-foundata
+. .venv/bin/activate
 ```
 
-Ansible Lint discovers installed modules under
-`ansiblelint.rules.custom.foundata`; no repository-local rule directory or
-`sys.path` changes are needed. Use a non-editable installation as described in
-[development](DEVELOPMENT.md).
+If you already have a lint environment, use its Python path in the install
+command and activate that environment instead. You can pass a built wheel in
+place of the source directory. Runtime dependencies, including Ansible Lint, are
+installed with the extension.
 
-All rules are opt-in. Enable individual IDs in `.ansible-lint`, including when
-using a stock profile:
+Use a regular, non-editable installation. Ansible Lint discovers the installed
+rules automatically; you do not need a local rule directory or `sys.path`
+changes. For work on the extension itself, use the
+[development setup](./DEVELOPMENT.md#getting-started).
+
+
+## Configuration<a id="configuration"></a>
+
+All foundata rules are opt-in, including under stock profiles. Add their IDs to
+`enable_list` in your Ansible project's `.ansible-lint`. This example enables
+the condition-list rule alongside the stock production profile:
 
 ```yaml
 ---
@@ -50,57 +71,54 @@ profile: "production"
 strict: true
 enable_list:
   - "foundata-condition-list"
-  - "foundata-condition-bool"
-  - "foundata-fact-vars"
-  - "foundata-notify"
-  - "foundata-loop-collision"
-  - "foundata-set-fact"
-  - "foundata-handler-listen"
-  - "foundata-task-order"
-  - "foundata-file-mode"
-  - "foundata-debug-verbosity"
-  - "foundata-no-end-play"
-  - "foundata-task-name"
-  - "foundata-jinja-fqcn"
-  - "foundata-template-inputs"
-  - "foundata-command-argv"
 ```
 
-Run:
+For the broader guideline baseline, adapt both tested consumer files:
+
+- [`.ansible-lint`](./examples/consumer/.ansible-lint) enables the adopted
+  foundata rules and stock `jinja-template-extension` and `loop-var-prefix`
+  checks.
+- [`.yamllint`](./examples/consumer/.yamllint) accepts formatter output,
+  requires document starts and lowercase booleans, and prefers double quotes
+  without forcing them on local identifiers or implicit expressions.
+
+The loop-variable pattern requires a private role prefix and purpose suffix. If
+the role's public prefix includes its collection, add that component to
+`loop_var_prefix`; the baseline cannot infer it.
+
+Review the [rule contract](./docs/rules.md#implemented-rules) before adopting
+the baseline. It enforces its SHOULD-level checks as errors; document that
+choice in your project. `foundata-string-quotes` and `foundata-parameter-order`
+require separate adoption and are not enabled in the consumer example.
+
+
+## Running checks<a id="running-checks"></a>
+
+Run the installed command from your Ansible project:
 
 ```sh
+ansible-lint --list-rules --format brief
 ansible-lint
-ansible-lint --fix
 ```
 
-Without this package, the tested Ansible Lint version continues to run its stock
-checks even if these IDs remain in `enable_list`. Do not pass missing custom IDs
-explicitly to `--fix=...`. Installed foundata rules remain inactive unless
-enabled in the configuration. Fallback without the package is for optional
-local use; CI that requires the extension must verify its installation.
+The listing confirms discovery, not whether a rule is enabled. The lint run uses
+your configuration and reports findings with links to the relevant guideline
+sections.
 
-Document which SHOULD-level recommendations the project enforces as errors.
-In the lint environment, check every enabled custom rule ID with
-`ansible-lint --list-rules --format brief` using the project's configuration.
-Fail CI if any are absent. Listing checks discovery; use known-invalid
-fixtures to verify that the enabled rules also report violations.
-
-The tested consumer configurations in
-[`examples/consumer/.ansible-lint`](examples/consumer/.ansible-lint) and
-[`examples/consumer/.yamllint`](examples/consumer/.yamllint) enable stock
-`jinja-template-extension` and `loop-var-prefix` alongside the foundata rules.
-The loop check requires a private role prefix and purpose suffix. Where a role's
-public prefix includes its collection, add that component to `loop_var_prefix`;
-the baseline cannot infer it.
-
-The YAML configuration accepts formatter output, enforces document starts and
-lowercase booleans, and prefers double quotes without forcing quotes on local
-identifiers or implicit expressions. Optional `foundata-string-quotes` and
-`foundata-parameter-order` checks require separate adoption; they are not
-enabled in the example. The example enforces its SHOULD-level checks as errors.
+Generated `changelogs/changelog.yaml` should be excluded from Ansible Lint and
+validated separately with `antsibull-changelog lint-changelog-yaml`; validate
+fragments with `antsibull-changelog lint`.
 
 
 ## Formatting and safety<a id="formatting-safety"></a>
+
+To apply available fixes, run:
+
+```sh
+ansible-lint --fix
+git diff
+ansible-lint
+```
 
 Ansible Lint owns YAML formatting. This package does not restore blank lines
 removed by `--fix`, require a blank line at EOF, or replace its serializer.
@@ -109,17 +127,52 @@ is diagnostic-only; stock `key-order` owns its autofix. The extension does not
 rename handler topics, change permissions, reinterpret process exit codes, or
 change play termination behavior. Review every fix.
 
-See the [rule contract](docs/rules.md) for exact coverage and remaining review
-requirements.
+Ansible Lint 26.9.0 returns exit code `8` when all reported violations were
+fixed. Run the final check even after that exit code; it should return zero once
+no violations remain.
 
-Generated `changelogs/changelog.yaml` should be excluded from Ansible Lint and
-validated separately with `antsibull-changelog lint-changelog-yaml`; validate
-fragments with `antsibull-changelog lint`.
+See the [rule contract](./docs/rules.md) for exact coverage, allowed exceptions,
+and remaining review requirements.
+
+
+## Continuous integration<a id="continuous-integration"></a>
+
+CI that requires these checks must install the extension and verify both
+discovery and execution:
+
+1. Run `ansible-lint --list-rules --format brief` in the lint environment using
+   the project's configuration. Fail if any enabled custom rule ID is absent.
+2. Run known-invalid fixtures to verify that every adopted rule reports its
+   expected violation. Listing bypasses profile filtering and does not prove
+   execution.
+3. Lint the project with the same configuration and environment.
+
+Without this package, the tested Ansible Lint version continues to run stock
+checks even if custom IDs remain in `enable_list`. That fallback is for optional
+local use. Do not pass missing custom IDs explicitly to `--fix=...`.
+
+
+## Troubleshooting<a id="troubleshooting"></a>
+
+- If no `foundata-*` rules appear in the listing, check that the extension and
+  the command are installed in the same environment. Reinstall the extension
+  without editable mode.
+- If a listed rule does not report an expected violation, check `enable_list`,
+  `skip_list`, local `noqa` comments, and the rule's
+  [analysis boundaries](./docs/rules.md#boundaries). Runtime values and
+  unresolved references may be outside its scope.
+- If a finding remains after `--fix`, check the rule's
+  [autofix support](./docs/rules.md#implemented-rules). Most rules require a
+  reviewed manual change; extended task ordering is one example.
+
+
+## Development<a id="development"></a>
+
+See [DEVELOPMENT.md](./DEVELOPMENT.md) for the contributor environment, test
+suite, package layout, and release procedure.
 
 
 ## Licensing, copyright<a id="licensing-copyright"></a>
-
-[![REUSE status](https://api.reuse.software/badge/github.com/foundata/ansible-lint-foundata)](https://api.reuse.software/info/github.com/foundata/ansible-lint-foundata)
 
 <!--REUSE-IgnoreStart-->
 <!-- rumdl-disable MD034 --><!-- should match SPDX-PackageSupplier -->
@@ -140,6 +193,8 @@ third-party components. The repository follows the
 an
 [SPDX software bill of materials (SBOM)](https://en.wikipedia.org/wiki/Software_Package_Data_Exchange).
 <!--REUSE-IgnoreEnd-->
+
+[![REUSE status](https://api.reuse.software/badge/github.com/foundata/ansible-lint-foundata)](https://api.reuse.software/info/github.com/foundata/ansible-lint-foundata)
 
 
 ### Trademarks<a id="trademarks"></a>
