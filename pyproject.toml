@@ -50,6 +50,9 @@ Issues = "https://foundata.com/en/projects/ansible-lint-foundata/#issues"
 Changelog = "https://foundata.com/en/projects/ansible-lint-foundata/#changelog"
 Guidelines = "https://foundata.com/en/guidelines/ansible-playbooks/"
 
+[tool.releasing]
+repository = "foundata/ansible-lint-foundata"
+
 [tool.uv.build-backend]
 # Ansible Lint discovers rules installed below its own package; the wheel ships
 # that discovery directory without any parent ansiblelint/__init__.py.
@@ -82,6 +85,7 @@ dev = [
   "mypy>=1.13",
   "pytest>=9.0",
   "pytest-cov>=5.0.0",
+  "releasing>=5,<6",
   "reuse>=4.0.2",
   "ruff>=0.12.7",
   "rumdl>=0.2.72",
