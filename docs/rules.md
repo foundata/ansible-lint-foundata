@@ -2,12 +2,23 @@
 
 Rules apply to existing violations, including guideline examples.
 
-## Implemented rules
+## Table of contents
+
+- [Implemented rules](#implemented-rules)
+  - [Boundaries](#boundaries)
+- [Stock coverage](#stock-coverage)
+  - [Compatible task ordering](#compatible-task-ordering)
+- [Planned checks](#planned-checks)
+- [Review and runtime checks](#review-and-runtime-checks)
+- [Release acceptance](#release-acceptance)
+
+
+## Implemented rules<a id="implemented-rules"></a>
 
 All rules are opt-in, including under stock profiles: add `enable_list` entries.
-Severity describes impact; enabled rules fail unless in `warn_list` or
-`skip_list`. With `strict: true`, warnings also fail. Projects must explicitly
-adopt and document SHOULD-level rules enforced as CI errors.
+Severity describes impact. Enabled rules fail unless listed in `warn_list` or
+`skip_list`; with `strict: true`, warnings also fail. Explicitly adopt and
+document any SHOULD-level rules enforced as CI errors.
 
 |          Rule ID           | Guide level |                                                     Scope and detection                                                     | Autofix |
 | -------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
@@ -29,69 +40,71 @@ adopt and document SHOULD-level rules enforced as CI errors.
 | `foundata-string-quotes`   | SHOULD      | Check ordinary task string values, excluding implicit expressions and binding identifiers.                                  | None.   |
 | `foundata-parameter-order` | SHOULD      | Group parameters of supported built-in modules, without sorting application data.                                           | None.   |
 
-### Boundaries
+### Boundaries<a id="boundaries"></a>
 
-- Conditions: cover `when`, `changed_when`, `failed_when` and `until`; the
-  boolean check also covers `assert.that`. Boolean
-  checks reject literal nonbooleans and expressions whose branches are all
-  known nonboolean. They do not evaluate plugins or infer runtime types.
-  Neither rule splits `and`, rewrites
-  role-list conditions or fixes invalid scalar types. Fixes preserve anchored
-  booleans and other scalar alias uses. Review mixed AND/OR grouping and
-  command-specific exit codes separately.
+- Conditions: both rules cover `when`, `changed_when`, `failed_when` and
+  `until`. The boolean check also covers `assert.that`. It rejects literal
+  nonbooleans and expressions whose branches are all known nonboolean, without
+  evaluating plugins or inferring runtime types. Neither rule splits `and`,
+  rewrites role-list conditions or fixes invalid scalar types. Fixes preserve
+  anchored booleans and other scalar alias uses. Review mixed AND/OR grouping
+  and command-specific exit codes separately.
 - Handlers: check handler files and inline play handlers. Exempt static
   `import_tasks` directives, but check their handlers. Dynamic `include_tasks`
-  handlers need topics on the include itself. Follow literal static imports,
-  including nested imports missed by stock discovery, with cycle protection
-  and stock path resolution/exclusions.
+  handlers need topics on the include itself. The rule follows literal static
+  imports, including nested imports missed by stock discovery. It detects
+  cycles and uses stock path resolution and exclusions.
   Recognized roles require `role[_collection]_<action>_<object>` topics.
   Adjacent `Shared broadcast` comments permit intentional shared topics.
   `Migration alias; remove in 3.0.0.` comments permit published legacy names,
   including mixed case. Review the stated purpose and removal deadline.
   Unknown role layouts retain lowercase checks; use an explained local
   suppression for a different public prefix. Topics are never renamed.
-- Graph checks: follow literal local task includes/imports, role entry points
-  and dependencies, with separate play namespaces and include-loop contexts.
-  Respect exclusions and project boundaries; cap traversal at 128 file contexts
-  and 5,000 tasks. Dynamic/external references, cycles and limits leave the
-  graph open. Report missing notifications only in closed plays; reusable roles
-  may notify external topics. Known handler-name coupling is still reported.
-  Resolve conventional local roles; custom search paths remain unresolved.
+- Graph checks: follow literal local task includes and imports, role entry
+  points and dependencies, with separate play namespaces and include-loop
+  contexts. Respect exclusions and project boundaries; cap traversal at 128 file
+  contexts and 5,000 tasks. Dynamic/external references, cycles and limits leave
+  the graph open. Missing notification targets are reported only in fully
+  resolved plays; reusable roles may notify external topics. References to known
+  handler names are still reported. Role resolution covers conventional local
+  paths; custom search paths remain unresolved.
 - Ordering: stock `key-order` owns `name` first and `block`, `rescue`, `always`
   last. Report only additional violations. The separate parameter rule covers
   `file`, `template`, `copy`, `debug`, `command`, `shell`, `service`, `systemd`,
   `systemd_service`, `package`, `apt`, `dnf`, `uri` and `get_url`. Keep primary
   parameters' relative order, then `owner`, `group`, `mode`, then alphabetized
-  optional parameters. Inspect direct module/argument mappings only; skip YAML
-  merges, unknown interfaces and nested application data. This advisory rule
-  and string quoting require separate adoption beyond the consumer example.
+  optional parameters. Inspect direct module and argument mappings only; skip
+  YAML merges, unknown interfaces and nested application data. This advisory
+  rule and string quoting are not enabled in the consumer example; adopt them
+  separately.
 - Permissions: cover `assemble`, `blockinfile`, `copy`, `file`, `get_url`,
   `lineinfile`, `replace`, `template`, `unarchive` and `uri` through
   `ansible.builtin`, `ansible.legacy` and normalized short names, in module,
   `action`, `local_action` and `args` mappings. YAML merges use the defining
-  mapping's comment and source line, including nested merges and overrides.
-  Put octal comments at literal definitions, not uses. Other collections
-  (including basename matches) and `module_defaults` are unsupported. Review
-  dynamic modes; the rule does not evaluate expressions. For unmodified variable
-  or literal mapping references, inspect task/play/block declarations, literal
-  `vars_files` and role `defaults/main`/`vars/main` definitions. Check comments
-  at definitions and report their locations in the use-site diagnostic. No
-  precedence simulation or dynamic include/lookup resolution.
-  Mode comments must start with four octal digits, such as `# 0644`, optionally
-  followed by an explanation. Assign every class with `=`; relative operations,
-  conditional `X`, copied bits and umask-dependent forms fail. Explicit setuid,
-  setgid and sticky bits are supported in their appropriate classes.
-  `preserve` fails because it is not absolute. Artifact-staging copies needing
-  source permissions may use task-local `# noqa: foundata-file-mode` with an
-  adjacent explanation. Review must confirm the exception; the rule does not
-  infer intent from task names, paths or comments.
-- Debug output: check for `verbosity`. Review decides between normal output
+  mapping's comment and source line, including nested merges and overrides. Put
+  octal comments at literal definitions, not uses. The rule does not support
+  other collections, even when module basenames match, or `module_defaults`.
+  Review dynamic modes; the rule does not evaluate expressions. For unmodified
+  variable or literal mapping references, inspect task/play/block declarations,
+  literal `vars_files` and role `defaults/main`/`vars/main` definitions. Check
+  comments at definitions and report their locations in the diagnostic at the
+  task. The rule does not simulate variable precedence or resolve dynamic
+  includes and lookups. Mode comments must start with four octal digits, such as
+  `# 0644`, optionally followed by an explanation. Assign every class with `=`;
+  relative operations, conditional `X`, copied bits and umask-dependent forms
+  fail. Explicit setuid, setgid and sticky bits are supported in their
+  appropriate classes. `preserve` fails because it is not absolute. Copies that
+  stage artifacts needing source permissions may use task-local
+  `# noqa: foundata-file-mode` with an adjacent explanation. Review must confirm
+  the exception; the rule does not infer intent from task names, paths or
+  comments.
+- Debug output: require `verbosity`. Review decides between normal output
   (`0`) and diagnostics (`1` or higher).
 - Play termination: require a reviewed task-local `# noqa: foundata-no-end-play`
   for `end_play`/`end_host` in roles or task files whose caller scope is
   unknown. Direct orchestration tasks require an adjacent explanation; review
   its meaning. Reject `end_role` outside recognized roles or inside handlers.
-  Declared minimum core-version compatibility remains a review concern. Never
+  Review compatibility with the declared minimum core version. Never
   substitute `end_host` just to avoid a finding.
 - Names: exclude Jinja loop/macro/assignment locals. Check static
   `vars['name']`, `lookup`/`query`/`q` calls to `vars`, the current loop's index
@@ -114,34 +127,37 @@ adopt and document SHOULD-level rules enforced as CI errors.
   128-visit limit leave requirements unresolved. Invalid syntax is reported as
   `[unresolved]`. Renderer metadata has no exemption. Exclude unrelated
   application templates; no templates or bindings are rewritten.
-- Command argv: check `quote` filter calls and literal higher-order uses. Do not
-  infer intent from literal quote characters, inspect dynamic argv definitions
-  or rewrite shell command strings.
+- Command argv: check `quote` filter calls and literal higher-order uses. The
+  rule does not infer intent from literal quote characters, inspect dynamic
+  argv definitions or rewrite shell command strings.
 - Facts: check an explicit catalog of built-in aliases, including direct names,
   literal `vars` lookups and `hostvars` access. Honor Jinja locals. Unknown
   aliases, dynamic variable names and fact freshness remain review concerns;
   magic and connection variables are not rejected by their prefix.
-- Input overwrites: check `set_fact` against the same literal declarations and
-  role argument specifications. Runtime-only caller inputs and arbitrary
-  `include_vars` files remain unresolved. Application dictionary contents and
+- Input overwrites: check `set_fact` against the literal variable declarations
+  described under permissions and against role argument specifications.
+  Runtime-only caller inputs and arbitrary `include_vars` files remain
+  unresolved. Application dictionary contents and
   newly computed variables are not treated as declared inputs.
 
-## Stock coverage
+
+## Stock coverage<a id="stock-coverage"></a>
 
 Use `.ansible-lint` and `.yamllint` for indentation, line endings, trailing
 whitespace, document markers, line-length ceilings, lowercase YAML booleans,
-double-quote preference with the agreed quoted-quote exception, basic names,
-module FQCNs, explicit role loop-variable patterns and common command risks.
-Do not duplicate stock checks. The formatter controls layout; one blank line
-between tasks is a guide preference, not an exact-placement rule.
+double-quote preference with an exception for strings containing double quotes,
+basic names, module FQCNs, explicit role loop-variable patterns and common
+command risks. Do not duplicate stock checks. The formatter controls layout; one
+blank line between tasks is a guide preference, not an exact-placement rule.
 
-The optional string-quote rule checks task values, not structural keys. Exempt
-conditions, `assert.that`, `debug.var`, register names and loop/index bindings.
-Accept quoted expressions and block scalars. Standalone vars files and play
-keywords remain review concerns. Stock owns quote style; neither custom style
-rule rewrites values or order. Explain readability exceptions with local skips.
+The optional string-quote rule checks task values, not structural keys. It
+exempts conditions, `assert.that`, `debug.var`, register names and loop/index
+bindings. It accepts quoted expressions and block scalars. Standalone vars files
+and play keywords remain review concerns. Stock owns quote style; neither custom
+style rule rewrites values or order. Explain readability exceptions with local
+skips.
 
-### Compatible task ordering
+### Compatible task ordering<a id="compatible-task-ordering"></a>
 
 The extension adds constraints to stock
 [`key-order`](https://docs.ansible.com/projects/lint/rules/key-order/):
@@ -157,9 +173,10 @@ The extension adds constraints to stock
 Keep stock `key-order` enabled. `foundata-task-order` is diagnostic-only;
 apply its suggested middle-key order manually.
 
-## Planned checks
 
-Not yet implemented; guideline obligations still apply:
+## Planned checks<a id="planned-checks"></a>
+
+These checks are not implemented. The guideline requirements still apply:
 
 - Quoting outside tasks and broader Jinja style coverage.
 - Jinja plugin coverage outside tasks and dictionary retrieval.
@@ -174,7 +191,8 @@ Define scope and regression fixtures before implementation. Parse YAML/Jinja
 instead of approximating it with regular expressions. Static analysis cannot
 resolve every dynamic reference.
 
-## Review and runtime checks
+
+## Review and runtime checks<a id="review-and-runtime-checks"></a>
 
 Integration tests must verify configuration convergence and operation without
 pre-gathered facts, with fact injection disabled. Cover missing facts and stale
@@ -186,7 +204,7 @@ Intentionally repeatable operations need an explicit trigger or documented
 purpose and accurate change reporting. `changed_when: false` cannot make a
 mutating operation idempotent.
 
-Review module choices, comment usefulness, template decomposition and runtime
+Review module choices, comment usefulness, template structure and runtime
 types. Boolean conversion requires supported inputs; Python truthiness is a
 separate choice. Literal command arguments need `expand_argument_vars: false`
 and no shell quoting in `argv`. ShellCheck covers shell syntax and dialect
@@ -202,12 +220,13 @@ fixtures in its lint environment. Listing bypasses profile filtering and does
 not prove execution. Integration tests verify the published consumer
 configuration this way.
 
-## Release acceptance
+
+## Release acceptance<a id="release-acceptance"></a>
 
 - Keep positive/negative fixtures for every rule, including real-world findings.
 - Test fix output, comment retention, semantic values and second-pass stability.
-- Test the installed CLI with and without configuration/package, and under a
-  production profile. Verify stock rules remain available.
+- Test the installed CLI with and without the configuration and package, and
+  under a production profile. Verify stock rules remain available.
 - Build wheel and sdist, install the wheel outside the checkout and verify
   discovery of every expected rule ID. Rebuild the sdist to check completeness.
 - Before claiming compatibility, test Python 3.12, 3.13 and 3.14, the supported
