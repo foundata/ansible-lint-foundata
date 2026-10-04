@@ -2,7 +2,22 @@
 
 Additional rules and conservative autofixes for
 [foundata's Ansible playbook guidelines](https://foundata.com/en/guidelines/ansible-playbooks/).
-This optional extension uses the stock Ansible Lint command.
+This optional extension uses the stock
+[Ansible Lint](https://docs.ansible.com/projects/lint/) command.
+
+<!-- rumdl-disable MD033 -->
+<!-- HTML for consistent rendering across limited platform parsers -->
+<div align="center" id="project-readme-header">
+<br>
+<br>
+
+**⭐ Found this useful? Support open-source and star this project:**
+
+[![GitHub repository](https://img.shields.io/github/stars/foundata/ansible-lint-foundata.svg)](https://github.com/foundata/ansible-lint-foundata)
+
+<br>
+</div>
+<!-- rumdl-enable MD033 -->
 
 ## Table of contents
 
@@ -103,6 +118,8 @@ fragments with `antsibull-changelog lint`.
 
 
 ## Licensing, copyright<a id="licensing-copyright"></a>
+
+[![REUSE status](https://api.reuse.software/badge/github.com/foundata/ansible-lint-foundata)](https://api.reuse.software/info/github.com/foundata/ansible-lint-foundata)
 
 <!--REUSE-IgnoreStart-->
 <!-- rumdl-disable MD034 --><!-- should match SPDX-PackageSupplier -->
