@@ -11,12 +11,15 @@ or
 [public repository](https://foundata.com/en/projects/ansible-lint-foundata/#source)
 on the project page.
 
+Follow the [code of conduct](./CODE_OF_CONDUCT.md) when participating.
+
 Report suspected security vulnerabilities privately using the channels in
 [SECURITY.md](./SECURITY.md#reporting), not in a public issue.
 
 ## Table of contents
 
 - [Issues](#issues)
+- [Discussions](#discussions)
 - [Submitting changes](#submitting-changes)
 
 
@@ -49,6 +52,13 @@ For a new rule or a change to an existing rule, link the relevant
 section and include examples that should pass and fail. Check the
 [rule contract](./docs/rules.md) for existing coverage, exceptions and analysis
 limits. Describe any proposed guideline change alongside the linting change.
+
+
+## Discussions<a id="discussions"></a>
+
+If you have something to discuss or comment about the project, feel free to send
+an email to Andreas Haerter <ah@foundata.com> (no support requests, all
+resources are provided "as is").
 
 
 ## Submitting changes<a id="submitting-changes"></a>
