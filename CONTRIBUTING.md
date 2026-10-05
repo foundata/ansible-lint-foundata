@@ -1,5 +1,12 @@
 # Contributing
 
+Thank you for your interest in contributing. Use these channels:
+
+- Open an issue to report a problem or request a feature.
+- Submit code through a pull request (PR) or merge request (MR).
+- Send an email to the maintainer if you have something to discuss (no support
+  requests).
+
 Development takes place on our internal repository hosting platform. You can
 report issues and submit changes through any of our public repositories on
 platforms such as GitHub, GitLab or Codeberg. We coordinate the work internally
