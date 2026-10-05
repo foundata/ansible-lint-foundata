@@ -187,12 +187,13 @@ This project is licensed under the GNU General Public License v3.0 or later
 [`LICENSES/GPL-3.0-or-later.txt`](./LICENSES/GPL-3.0-or-later.txt)
 for the full text.
 
-[`REUSE.toml`](./REUSE.toml) records licensing and copyright information in a
-human- and machine-readable format, including any different terms for
-third-party components. The repository follows the
-[REUSE specification](https://reuse.software/spec/). Use
+The [`REUSE.toml`](./REUSE.toml) file provides detailed licensing and copyright
+information in a human- and machine-readable format. This includes parts that
+may be subject to different licensing or usage terms, such as third-party
+components. The repository conforms to the
+[REUSE specification](https://reuse.software/spec/). You can use
 [`reuse spdx`](https://reuse.readthedocs.io/en/latest/readme.html#cli) to create
-an
+a
 [SPDX software bill of materials (SBOM)](https://en.wikipedia.org/wiki/Software_Package_Data_Exchange).
 <!--REUSE-IgnoreEnd-->
 
