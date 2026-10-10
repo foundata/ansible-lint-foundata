@@ -159,7 +159,7 @@ class TemplateGraph:
             if not isinstance(node.template, nodes.Const) or not isinstance(
                 node.template.value, str
             ):
-                # A runtime parent may provide block locals; their provenance is unknown.
+                # A runtime parent may provide block locals of unknown provenance.
                 for block in template.find_all(nodes.Block):
                     result.update(self._loads(block))
                 continue
