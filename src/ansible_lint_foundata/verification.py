@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Verify installed rules through Ansible Lint's command-line interface."""
 
 from __future__ import annotations

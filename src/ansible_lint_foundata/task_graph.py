@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Bounded, read-only traversal of literal local role and task references."""
 
 from __future__ import annotations

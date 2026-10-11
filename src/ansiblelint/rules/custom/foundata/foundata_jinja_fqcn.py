@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Extend module FQCN checks to statically named Jinja plugins in tasks."""
 
 from __future__ import annotations

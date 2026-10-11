@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Pure policy checks, independent of Ansible's rule discovery mechanism."""
 
 from __future__ import annotations

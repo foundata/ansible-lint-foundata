@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Analyze literal Jinja composition with lexical include contexts, never render."""
 
 from __future__ import annotations

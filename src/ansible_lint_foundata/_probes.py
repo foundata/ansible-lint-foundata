@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Known-invalid inputs for installed rule verification; never run as playbooks."""
 
 PROBES = {

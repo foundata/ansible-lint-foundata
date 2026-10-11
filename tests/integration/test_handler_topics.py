@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Verify scoped handler names and adjacent migration comments in the CLI."""
 
 from pathlib import Path

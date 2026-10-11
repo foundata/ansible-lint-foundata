@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """The extension constrains only keys stock key-order leaves unordered."""
 
 from pathlib import Path

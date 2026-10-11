@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Check fact aliases in explicit and implicit expression contexts."""
 
 from pathlib import Path

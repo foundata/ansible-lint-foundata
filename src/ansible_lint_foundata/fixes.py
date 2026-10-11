@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Small round-trip YAML transformations shared by the rules."""
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq

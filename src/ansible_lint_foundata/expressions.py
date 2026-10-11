@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Static Jinja inspection without rendering or loading Ansible plugins."""
 
 from __future__ import annotations

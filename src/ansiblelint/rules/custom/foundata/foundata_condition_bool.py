@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Reject condition results known to be nonboolean without evaluating Jinja."""
 
 from __future__ import annotations

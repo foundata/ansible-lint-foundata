@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Advisory order for a fixed set of built-in module interfaces."""
 
 from __future__ import annotations

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Known built-in injected facts, independent of runtime gathering."""
 
 from jinja2 import Environment, TemplateSyntaxError, nodes

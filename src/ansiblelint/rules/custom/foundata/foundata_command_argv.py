@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Reject shell quoting that becomes literal data in command argv."""
 
 from __future__ import annotations

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Check source definitions without pretending to evaluate variable precedence."""
 
 from pathlib import Path

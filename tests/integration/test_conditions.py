@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Exercise retry conditions and conservative boolean diagnostics."""
 
 from pathlib import Path

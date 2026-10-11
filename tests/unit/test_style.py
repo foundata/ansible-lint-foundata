@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Style checks preserve expression and application-data boundaries."""
 
 from ruamel.yaml import YAML

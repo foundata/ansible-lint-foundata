@@ -1,5 +1,10 @@
 # Ansible Lint (foundata extension)
 
+<!--
+SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
 Additional rules and conservative autofixes for
 [foundata's Ansible playbook guidelines](https://foundata.com/en/guidelines/ansible-playbooks/).
 This optional extension uses the stock

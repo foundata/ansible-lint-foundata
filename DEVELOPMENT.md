@@ -1,5 +1,10 @@
 # Development
 
+<!--
+SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
 For contributors and maintainers of `ansible-lint-foundata`. User installation
 and configuration are covered in the [README](./README.md); detection boundaries
 and expected fixes are defined in the [rule contract](./docs/rules.md).

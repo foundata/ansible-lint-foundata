@@ -1,5 +1,10 @@
 # Rule contract
 
+<!--
+SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
 Rules apply to existing violations, including guideline examples.
 
 ## Table of contents
