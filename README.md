@@ -40,6 +40,8 @@ This optional extension uses the stock
 
 ## Installation<a id="installation"></a>
 
+[![PyPI package version](https://img.shields.io/pypi/v/ansible-lint-foundata.svg?logo=pypi)](https://pypi.org/project/ansible-lint-foundata)
+
 Requires Python 3.12 or later and Ansible Lint 26.9.0 or later. Install the
 extension into the **same environment** as `ansible-lint`.
 
