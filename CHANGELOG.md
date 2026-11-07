@@ -14,7 +14,10 @@ and the project adheres to
 
 ## [Unreleased]
 
-- Nothing worth mentioning right now.
+### Changed
+
+- `foundata-handler-listen` no longer accepts `Migration alias` comments.
+  `Shared broadcast` comments remain the only exception to the naming rule.
 
 
 ## [1.1.0] - 2026-10-04

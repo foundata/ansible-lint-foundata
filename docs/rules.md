@@ -29,7 +29,7 @@ document any SHOULD-level rules enforced as CI errors.
 | -------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
 | `foundata-condition-list`  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                        | Wrap strings/booleans only. |
 | `foundata-condition-bool`  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                       | None.   |
-| `foundata-handler-listen`  | MUST        | Require scoped topic lists; allow documented broadcasts and versioned migration aliases.                                    | Wrap a valid scalar topic; never rename. |
+| `foundata-handler-listen`  | MUST        | Require scoped topic lists; allow documented broadcasts.                                                                    | Wrap a valid scalar topic; never rename. |
 | `foundata-task-order`      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                             | None: stock owns ordering autofix. |
 | `foundata-file-mode`       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.          | None: resolve mode/comment disagreements manually. |
 | `foundata-debug-verbosity` | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                             | None.   |
@@ -60,9 +60,8 @@ document any SHOULD-level rules enforced as CI errors.
   imports, including nested imports missed by stock discovery. It detects
   cycles and uses stock path resolution and exclusions.
   Recognized roles require `role[_collection]_<action>_<object>` topics.
-  Adjacent `Shared broadcast` comments permit intentional shared topics.
-  `Migration alias; remove in 3.0.0.` comments permit published legacy names,
-  including mixed case. Review the stated purpose and removal deadline.
+  Adjacent `Shared broadcast` comments permit intentional shared topics. Review
+  the stated purpose.
   Unknown role layouts retain lowercase checks; use an explained local
   suppression for a different public prefix. Topics are never renamed.
 - Graph checks: follow literal local task includes and imports, role entry

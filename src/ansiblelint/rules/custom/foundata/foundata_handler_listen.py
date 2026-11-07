@@ -34,9 +34,7 @@ class FoundataHandlerListenRule(FoundataRule, TransformMixin):
     """Give handlers explicit lowercase listen topics in list form."""
 
     id = "foundata-handler-listen"
-    description = (
-        "Namespace role topics and document migration aliases with removal versions."
-    )
+    description = "Namespace role topics and document shared broadcasts."
     tags = ["opt-in", "idiom"]
     severity = "MEDIUM"
     version_changed = "1.0.0"

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: foundata GmbH <https://foundata.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Verify scoped handler names and adjacent migration comments in the CLI."""
+"""Verify scoped handler names and adjacent comments in the CLI."""
 
 from pathlib import Path
 
@@ -11,7 +11,7 @@ from tests.integration.test_cli import configure, diagnostics, run_lint
 pytestmark = pytest.mark.integration
 
 
-def test_namespace_and_aliases_are_never_renamed(tmp_path: Path) -> None:
+def test_nonconforming_topics_are_reported_and_never_renamed(tmp_path: Path) -> None:
     configure(tmp_path, "foundata-handler-listen")
     target = tmp_path / "roles/nginx/handlers/main.yml"
     target.parent.mkdir(parents=True)
@@ -20,8 +20,7 @@ def test_namespace_and_aliases_are_never_renamed(tmp_path: Path) -> None:
         '    - "nginx_restart_nginx"\n'
         '    - "Restart Nginx" # Migration alias; remove in 3.0.0.\n'
         '    # Shared broadcast for web services.\n    - "web_restart_services"\n'
-        '- name: "Missing object"\n  ansible.builtin.debug:\n    msg: "Restart"\n  listen:\n    - "nginx_restart"\n'
-        '- name: "Missing removal version"\n  ansible.builtin.debug:\n    msg: "Restart"\n  listen:\n    - "Old Topic" # Migration alias\n',
+        '- name: "Missing object"\n  ansible.builtin.debug:\n    msg: "Restart"\n  listen:\n    - "nginx_restart"\n',
         encoding="utf-8",
     )
     matches = diagnostics(run_lint(tmp_path, "-f", "json", str(target)))
