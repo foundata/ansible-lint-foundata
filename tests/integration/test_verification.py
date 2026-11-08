@@ -63,7 +63,7 @@ def test_verifies_adopted_rules_without_changing_project(
     }
     result = run_verify(tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert f"{17 if all_rules else 15} foundata rules" in result.stdout
+    assert f"{18 if all_rules else 16} foundata rules" in result.stdout
     assert before == {
         p.relative_to(tmp_path): p.read_bytes()
         for p in tmp_path.rglob("*")

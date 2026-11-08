@@ -25,6 +25,12 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
     tmp_path: Path,
 ) -> None:
     install_config(tmp_path)
+    role_tasks = tmp_path / "roles/example/tasks/main.yml"
+    role_tasks.parent.mkdir(parents=True)
+    role_tasks.write_text(
+        '---\n- name: "Flush handlers"\n  ansible.builtin.meta: "flush_handlers"\n',
+        encoding="utf-8",
+    )
     (tmp_path / "tasks").mkdir()
     (tmp_path / "handlers").mkdir()
     (tmp_path / "templates").mkdir()
@@ -94,6 +100,7 @@ def test_consumer_configuration_executes_all_adopted_custom_rules(
         "handlers/main.yml",
         "templates/example.j2",
         "playbook.yml",
+        str(role_tasks),
     )
     custom = {
         item["check_name"]

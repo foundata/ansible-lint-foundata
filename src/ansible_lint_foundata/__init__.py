@@ -16,6 +16,7 @@ RULE_IDS = (
     "foundata-file-mode",
     "foundata-debug-verbosity",
     "foundata-no-end-play",
+    "foundata-no-flush-handlers",
     "foundata-task-name",
     "foundata-jinja-fqcn",
     "foundata-template-inputs",

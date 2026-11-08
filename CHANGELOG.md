@@ -14,6 +14,11 @@ and the project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Opt-in `foundata-no-flush-handlers` rule to reject `meta: flush_handlers` in
+  role tasks and handlers, excluding Molecule content.
+
 ### Changed
 
 - `foundata-handler-listen` no longer accepts `Migration alias` comments.

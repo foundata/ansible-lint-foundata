@@ -25,25 +25,26 @@ Severity describes impact. Enabled rules fail unless listed in `warn_list` or
 `skip_list`; with `strict: true`, warnings also fail. Explicitly adopt and
 document any SHOULD-level rules enforced as CI errors.
 
-|          Rule ID           | Guide level |                                                     Scope and detection                                                     | Autofix |
-| -------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `foundata-condition-list`  | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                        | Wrap strings/booleans only. |
-| `foundata-condition-bool`  | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                       | None.   |
-| `foundata-handler-listen`  | MUST        | Require scoped topic lists; allow documented broadcasts.                                                                    | Wrap a valid scalar topic; never rename. |
-| `foundata-task-order`      | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                             | None: stock owns ordering autofix. |
-| `foundata-file-mode`       | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.          | None: resolve mode/comment disagreements manually. |
-| `foundata-debug-verbosity` | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                             | None.   |
-| `foundata-no-end-play`     | Policy      | Require reviewed caller-termination exceptions for reusable content; check orchestration explanations and `end_role` scope. | None: `end_host` is not equivalent. |
-| `foundata-task-name`       | MUST NOT    | Reject templated play names and current-loop variable references in task names.                                             | None.   |
-| `foundata-jinja-fqcn`      | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments.  | None: review provider resolution. |
-| `foundata-template-inputs` | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                    | None: inputs define the interface. |
-| `foundata-command-argv`    | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                     | None: preserve arguments for review. |
-| `foundata-fact-vars`       | MUST        | Check known injected fact references in task expressions, play vars and vars files.                                         | None: review host and variable scope. |
-| `foundata-notify`          | MUST        | Resolve static local notifications; reject name coupling and missing targets in closed plays.                               | None: never rename topics. |
-| `foundata-loop-collision`  | MUST        | Detect loop/index bindings that shadow outer include/role loop bindings.                                                    | None: renaming changes references. |
-| `foundata-set-fact`        | SHOULD      | Reject overwrites of statically declared task/play variables, role defaults/vars and role argument options.                 | None: choose a separate state variable. |
-| `foundata-string-quotes`   | SHOULD      | Check ordinary task string values, excluding implicit expressions and binding identifiers.                                  | None.   |
-| `foundata-parameter-order` | SHOULD      | Group parameters of supported built-in modules, without sorting application data.                                           | None.   |
+|           Rule ID            | Guide level |                                                     Scope and detection                                                     | Autofix |
+| ---------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `foundata-condition-list`    | MUST        | Require lists for task/block/handler `when`, `changed_when`, `failed_when`, `until`.                                        | Wrap strings/booleans only. |
+| `foundata-condition-bool`    | MUST        | Reject provably nonboolean condition results without evaluating variables or plugins.                                       | None.   |
+| `foundata-handler-listen`    | MUST        | Require scoped topic lists; allow documented broadcasts.                                                                    | Wrap a valid scalar topic; never rename. |
+| `foundata-task-order`        | SHOULD      | Order middle task keys, retaining unknown keys' relative slots.                                                             | None: stock owns ordering autofix. |
+| `foundata-file-mode`         | Policy      | Require absolute symbolic permission modes with matching inline octal comments in supported built-in file modules.          | None: resolve mode/comment disagreements manually. |
+| `foundata-debug-verbosity`   | MUST        | Require explicit `verbosity`; allow zero for normal-run output.                                                             | None.   |
+| `foundata-no-end-play`       | Policy      | Require reviewed caller-termination exceptions for reusable content; check orchestration explanations and `end_role` scope. | None: `end_host` is not equivalent. |
+| `foundata-no-flush-handlers` | MUST NOT    | Reject `meta: flush_handlers` in role tasks and handlers.                                                                   | None: run the action as a task. |
+| `foundata-task-name`         | MUST NOT    | Reject templated play names and current-loop variable references in task names.                                             | None.   |
+| `foundata-jinja-fqcn`        | MUST        | Check literal filter/test/lookup names in task templates and implicit conditions, including higher-order plugin arguments.  | None: review provider resolution. |
+| `foundata-template-inputs`   | MUST        | Require `tpl_*` external inputs in selected Jinja files; exempt lexical locals and native Jinja globals.                    | None: inputs define the interface. |
+| `foundata-command-argv`      | MUST NOT    | Reject shell-quoting filters in `ansible.builtin.command` or `ansible.legacy.command` argv expressions.                     | None: preserve arguments for review. |
+| `foundata-fact-vars`         | MUST        | Check known injected fact references in task expressions, play vars and vars files.                                         | None: review host and variable scope. |
+| `foundata-notify`            | MUST        | Resolve static local notifications; reject name coupling and missing targets in closed plays.                               | None: never rename topics. |
+| `foundata-loop-collision`    | MUST        | Detect loop/index bindings that shadow outer include/role loop bindings.                                                    | None: renaming changes references. |
+| `foundata-set-fact`          | SHOULD      | Reject overwrites of statically declared task/play variables, role defaults/vars and role argument options.                 | None: choose a separate state variable. |
+| `foundata-string-quotes`     | SHOULD      | Check ordinary task string values, excluding implicit expressions and binding identifiers.                                  | None.   |
+| `foundata-parameter-order`   | SHOULD      | Group parameters of supported built-in modules, without sorting application data.                                           | None.   |
 
 ### Boundaries<a id="boundaries"></a>
 
@@ -110,6 +111,12 @@ document any SHOULD-level rules enforced as CI errors.
   its meaning. Reject `end_role` outside recognized roles or inside handlers.
   Review compatibility with the declared minimum core version. Never
   substitute `end_host` just to avoid a finding.
+- Handler flushing: reject `flush_handlers` through built-in, legacy and short
+  `meta` names in role `tasks/**` and handler files, including included/imported
+  tasks. Exclude playbooks, standalone tasks outside roles, collection
+  `extensions/molecule/**` and role-local `molecule/**` content. Other meta
+  operations are unaffected. Run dependent actions as regular tasks; use a
+  reviewed task-local `# noqa: foundata-no-flush-handlers` for an exception.
 - Names: exclude Jinja loop/macro/assignment locals. Check static
   `vars['name']`, `lookup`/`query`/`q` calls to `vars`, the current loop's index
   variable and `ansible_loop` metadata. Review dynamically constructed names and

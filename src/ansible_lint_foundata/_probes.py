@@ -3,6 +3,10 @@
 """Known-invalid inputs for installed rule verification; never run as playbooks."""
 
 PROBES = {
+    "roles/example/tasks/main.yml": """---
+- name: "Flush handlers"
+  ansible.builtin.meta: "flush_handlers"
+""",
     "tasks/main.yml": """---
 - name: "File"
   register: result
