@@ -5,7 +5,7 @@
 
 [project]
 name = "ansible-lint-foundata"
-version = "1.1.0"
+version = "1.2.0"
 description = "foundata's additional rules and fixes for Ansible Lint"
 keywords = [
   "ansible",
